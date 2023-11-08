@@ -3,7 +3,7 @@
 
 #define DEBUG
 
-pipe_info pipe_list[5];    // global array of char pointers to the pipe_list 
+// pipe_info pipe_list[5];    // global array of char pointers to the pipe_list 
 
 void pipe_info_init(pipe_info pipe_struct)
 {
@@ -53,6 +53,8 @@ int pipe_write(int p, char c)
     int currWrite = pipe_list[p].write;
     int currSize = pipe_list[p].size;
 
+    while(pipe_list[p].pipe[currWrite] != '\0');
+    
     pipe_list[p].pipe[currWrite] = c;
 
     if (currWrite + 1 == currSize) 
@@ -78,6 +80,7 @@ int pipe_read(int p, char *c)   //  it is string
 {   
     int currRead = pipe_list[p].read;
     int counter = 0;
+
     
     if(pipe_list[p].write == -1)        // only if pipe is closed for write
     {
@@ -102,6 +105,7 @@ int pipe_read(int p, char *c)   //  it is string
     // }
 
     // c = pipe_list[p].pipe[currRead];
+    while(pipe_list[p].pipe[currRead] == '\0');
 
     c = strncat(c, &pipe_list[p].pipe[currRead], 1);
     pipe_list[p].pipe[currRead] = '\0';

@@ -1,5 +1,5 @@
 CXX = gcc            # C++ compiler
-CXXFLAGS = -Wall -fsanitize=address # Compiler flags
+CXXFLAGS = -Wall -fsanitize=address -g# Compiler flags
 LDFLAGS = -fsanitize=address -lpthread         # Linker flags
 SRC_FILES = $(wildcard *.c)   # List of source files
 OBJ_FILES = $(SRC_FILES:.c=.o)  # List of object files

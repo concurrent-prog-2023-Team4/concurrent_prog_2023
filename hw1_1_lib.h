@@ -10,6 +10,8 @@ typedef struct pipe_info {
     char *pipe;
 } pipe_info;
 
+pipe_info pipe_list[5];    // global array of char pointers to the pipe_list 
+
 void pipe_info_init(pipe_info pipe_struct);
 
 int pipe_open(int size);
