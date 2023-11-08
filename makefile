@@ -1,18 +1,23 @@
-CXX = gcc
-CXXFLAGS = -Wall -fsanitize=address
-LINK = -lpthread
+CXX = gcc            # C++ compiler
+CXXFLAGS = -Wall -fsanitize=address # Compiler flags
+LDFLAGS = -fsanitize=address -lpthread         # Linker flags
+SRC_FILES = $(wildcard *.c)   # List of source files
+OBJ_FILES = $(SRC_FILES:.c=.o)  # List of object files
+TARGET = hw1_1   # Final executable name
 
-SRC = hw1_1.c
-HEADER = hw1_1.h
-OUT = hw1_1
+# Main rule
+all: $(TARGET)
 
+# Compile source files into object files
+%.o: %.c
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-all: $(OUT)
+# Link object files to create the executable
+$(TARGET): $(OBJ_FILES)
+	$(CXX) $(LDFLAGS) $^ -o $@
 
-$(OUT): $(SRC)
-	$(CXX) $(CXXFLAGS) -o $(OUT) $(SRC) $(LINK)
-
+# Clean compiled files
 clean:
-	rm -f $(OUT)
+	rm -f $(OBJ_FILES) $(TARGET)
 
 .PHONY: all clean

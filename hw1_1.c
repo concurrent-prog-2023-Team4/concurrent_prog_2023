@@ -1,7 +1,5 @@
 // pthreads brokos
-#include <stdio.h>
-#include <pthread.h>
-#include "hw1_1_lib.c"      // einai lathos | mhn ton akous sosto einai | épipe
+#include "hw1_1.h"
 
 int main()
 {

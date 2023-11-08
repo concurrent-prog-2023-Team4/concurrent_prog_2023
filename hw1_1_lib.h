@@ -1,4 +1,7 @@
 // Header file for hw1.1
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef struct pipe_info {
     int size;

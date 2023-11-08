@@ -1,8 +1,5 @@
 // hw1
 #include "hw1_1_lib.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define DEBUG
 
