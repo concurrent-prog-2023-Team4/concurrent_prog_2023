@@ -53,7 +53,7 @@ int pipe_write(int p, char c)
     int currWrite = pipe_list[p].write;
     int currSize = pipe_list[p].size;
 
-    while(pipe_list[p].pipe[currWrite] != '\0');
+    //while(pipe_list[p].pipe[currWrite] != '\0');
     
     pipe_list[p].pipe[currWrite] = c;
 
@@ -88,8 +88,7 @@ int pipe_read(int p, char *c)   //  it is string
         {
             if (pipe_list[p].pipe[i] == '\0') 
             {
-                counter++ ;
-                
+                counter++ ;    
             }
         }
         if (counter == pipe_list[p].size)
@@ -105,6 +104,7 @@ int pipe_read(int p, char *c)   //  it is string
     // }
 
     // c = pipe_list[p].pipe[currRead];
+
     while(pipe_list[p].pipe[currRead] == '\0');
 
     c = strncat(c, &pipe_list[p].pipe[currRead], 1);

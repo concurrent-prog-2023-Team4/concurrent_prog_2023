@@ -13,69 +13,70 @@ void *mythread(void *varg)
 }
 
 void *thread_1(void *varg)
-{   
-
+{     
     int *curPipe = (int *) varg;
 
+    char *out_0;
+    char *out_1;
 
-    //char text[128];
-    char out[128];
 
-    // FILE *kati;
-    // kati = fopen("copy", "w+");
-
-    // FILE *kati2;
-    // kati2 = fopen("copy2", "w+");
     printf("currpipe is %d\n", *curPipe);
 
     if(*curPipe == 0)
-    {
-        //scanf(" %100s", text);
-        FILE *kati2;
-        kati2 = fopen("copy2", "w+");
+    {   // thread 0
 
-        printf("Text is %s\n", text);
+        int i = 0, j = 0;
+        FILE *copy2;
+        //copy2 = fopen("copy2", "w+");
+
+        out_0 = (char*) malloc(129*sizeof(char));
+
+
         for (int i = 0; text[i] != '\0'; i++)
             pipe_write(0, text[i]);
         pipe_writeDone(0);
 
-        for(int i = 0; i < 128; i++)
+        int len = strlen(text);
+
+        for(j = 0; j < len; j++)
         {
-            pipe_read(1, out);
+            pipe_read(1, out_0);
         }
-        printf("out is %s\n", out);
 
-        fseek(kati2, 0, SEEK_END);      // writes copy2
-        // fseek(kati2, 0);
-        long filesize = ftell(kati2);
-
-        // fread(out, filesize, 1, kati);
-        fgets(out, filesize, kati2);
-        fprintf(kati2, out);
+        copy2 = fopen("copy2", "w+");
+        fwrite(out_0, sizeof(out_0[0]), len, copy2);
     }
 
 
     
     else if (*curPipe == 1)
     {
-        FILE *kati;
-        kati = fopen("copy", "w+");
+        FILE *copy;
+        copy = fopen("copy", "w+");
+        int i = 0, j = 0;
+        char temp[128] = {'\0'};
 
-        for(int i = 0; i < 128; i++)
+        char input_2[128] = {'\0'};
+
+        out_1 = (char*) malloc(129*sizeof(char));
+
+        int len = strlen(text);
+
+        for(j = 0; j < len; j++)
         {
-            pipe_read(0, out);
+            pipe_read(0, out_1);
         }
-        fprintf(kati, out);
 
-        fseek(kati, 0, SEEK_END);
-        long filesize = ftell(kati);
+        fwrite(out_1, sizeof(out_1[0]), len, copy);
 
-        // fread(out, filesize, 1, kati);
-        fgets(out, filesize, kati);
-        printf("Out is %s\n", out);
+
+        fseek(copy, 0, SEEK_SET);
+        fread(input_2, len, sizeof(char), copy);
         
-        for (int i = 0; out[i] != '\0'; i++)
-            pipe_write(1, out[i]);
+        for(i = 0; i < len; i++)
+        {
+            pipe_write(1, input_2[i]);
+        }
         pipe_writeDone(1);
 
     }
@@ -103,7 +104,7 @@ int main()
     pipe_id1 = pipe_open(size);     // open pipes
     pipe_id2 = pipe_open(size);
 
-    scanf(" %s", text);
+    fgets(text, sizeof(text), stdin);
     ret_1 = pthread_create(&p1, NULL, thread_1, (void*) &arg1);
     if(ret_1 == 0)
         printf("Thread created succesfully\n");
