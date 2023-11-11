@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <pthread.h>
 
 int **workers; // initialized in main
@@ -51,9 +52,10 @@ void *worker_thread(void *varg)
         workers[*pos][1] = 1;    //  busy //
         workers[*pos][2] = find_prime(workers[*pos][0]);      // set flag //
 
-        printf("The flag is %d\n", (workers[*pos][2]));
-                    workers[*pos][2] = -1;
-            // printf("The result is %d\n", workers[*pos][2]);
+        workers[*pos][4] = workers[*pos][4] + 1;        // add to array
+        
+        //printf("The result for number %d is %d for thread %lu\n",workers[*pos][0], workers[*pos][2], pthread_self());
+        workers[*pos][2] = -1;
         workers[*pos][0] = -1;   // number is negative so invalid //
         workers[*pos][1] = 0;    // not busy //
 
@@ -84,7 +86,7 @@ int main(int argc, char *argv[])      // argument is N //
 
     for(int i = 0; i < num_threads; i++)
     {
-        workers[i] = (int*) calloc(4, sizeof(int));     // pos 0: num, pos 1: busy, pos 2: flag, pos 3: terminate
+        workers[i] = (int*) calloc(5, sizeof(int));     // pos 0: num, pos 1: busy, pos 2: flag, pos 3: terminate
     }
 
  
@@ -95,11 +97,12 @@ int main(int argc, char *argv[])      // argument is N //
 
     for(j = 0; j < num_threads; j++)
     {
-        pthread_create(&id[j], NULL, worker_thread, (void*) &thread_ids[j]);
         workers[j][0] = -1; // invalid num
         workers[j][1] = 0;  // available
         workers[j][2] = -1; // invalid flag
         workers[j][3] = 0;  // not terminated
+        workers[j][4] = 0;  // how many times find prime has been ca
+        pthread_create(&id[j], NULL, worker_thread, (void*) &thread_ids[j]);
     }
 
     do
@@ -124,10 +127,29 @@ int main(int argc, char *argv[])      // argument is N //
                     // workers[i][2] = -1;
                 }
                 
-                scanf("%d", &number);
+
+                // while (!valid_input) 
+                // {
+                //     printf("Enter a positive integer: ");
+                //     if (scanf(" %d", &number) == 1) 
+                //     {
+                //         valid_input = 1;
+                //     } else 
+                //     {
+                //         printf("Invalid input. Please enter a valid integer.\n");
+                //         while (getchar() != '\n'); // Clear input buffer
+                //     }
+                // }
+                scanf(" %d", &number);
+                // printf("scanf reads %d\n", number);
+                sleep(0.001);
 
                 if(number < 0)
                 {   
+                    int sum = workers[0][4] + workers[1][4] + workers[2][4] + workers[3][4];
+                    
+                    printf("The sum is %d\n", sum);
+
                     return 0;
                     // for(j = 0; j < num_threads; j++)
                     // {
