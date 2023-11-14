@@ -97,15 +97,12 @@ int pipe_read(int p, char *c)   //  it is string
             return 0;   // if pipe is empty and write is close  
         }
     }
-    
-    // if( (pipe_list[p].read == -1) && (pipe_list[p].write == -1) )
-    // {
-    //     return 0;   // if pipe is empty and write is close  
-    // }
 
-    // c = pipe_list[p].pipe[currRead];
-
-    while(pipe_list[p].pipe[currRead] == '\0');
+    while(pipe_list[p].pipe[currRead] == '\0')
+    {
+        if(pipe_list[p].write == -1)
+            break;
+    }
 
     c = strncat(c, &pipe_list[p].pipe[currRead], 1);
     pipe_list[p].pipe[currRead] = '\0';
