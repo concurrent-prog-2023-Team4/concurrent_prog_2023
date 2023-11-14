@@ -26,13 +26,7 @@ int find_prime(int number)
         }
     }
     
-    // flag is 0 for prime numbers
-    // if (flag == 0)
-    //     printf("%d is a prime number.", number);
-    // else
-    //     printf("%d is not a prime number.", number);
-    // printf("The result is %d\n", flag);
-    return flag; //
+    return flag; 
 }
 
 void *worker_thread(void *varg)
@@ -42,15 +36,26 @@ void *worker_thread(void *varg)
     // workers[*pos][1] = 0;        // thread is available //
     while(1) 
     {
-        if (workers[*pos][3])    // terminate is 1, then TERMINATE //
-            pthread_exit(NULL);    
-        while (workers[*pos][0] < 0); //wait for work
+        while (workers[*pos][0] < 0) 
+        {
+            if (workers[*pos][3] == 1)    // terminate is 1, then TERMINATE //
+            {
+                workers[*pos][3] = -1;      // notify main that thread is closed //
+                //printf("I am closing\n");
+                pthread_exit(NULL);    
+            }
+
+        } //wait for work
 
 
         // /if(workers[*pos][0] >= 0)
         // {
         workers[*pos][1] = 1;    //  busy //
         workers[*pos][2] = find_prime(workers[*pos][0]);      // set flag //
+        if(workers[*pos][2] == 0)
+            printf("%d is a prime\n", workers[*pos][0]);
+        else if (workers[*pos][2] == 1)
+            printf("%d is not a prime\n", workers[*pos][0]);
 
         workers[*pos][4] = workers[*pos][4] + 1;        // add to array
         
@@ -68,10 +73,7 @@ void *worker_thread(void *varg)
 
        // }
     }
-    return NULL;
 }
-
-
 
 int main(int argc, char *argv[])      // argument is N // 
 {
@@ -80,20 +82,26 @@ int main(int argc, char *argv[])      // argument is N //
     // int pos;
     int i;
     int j;
+    int *buffer = NULL;
+    int buffer_pos = 0;
+    int counter = 0;
     
     
     workers = (int**) calloc(num_threads, sizeof(int*));
 
     for(int i = 0; i < num_threads; i++)
     {
-        workers[i] = (int*) calloc(5, sizeof(int));     // pos 0: num, pos 1: busy, pos 2: flag, pos 3: terminate
+        workers[i] = (int*) calloc(5, sizeof(int));   
     }
 
- 
-
-    // open threads 
+    // open threads //
     pthread_t id[num_threads];
-    int thread_ids[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int thread_ids[num_threads];
+
+    for (int i = 0; i < num_threads; i++) 
+    {
+        thread_ids[i] = i;
+    }
 
     for(j = 0; j < num_threads; j++)
     {
@@ -101,22 +109,22 @@ int main(int argc, char *argv[])      // argument is N //
         workers[j][1] = 0;  // available
         workers[j][2] = -1; // invalid flag
         workers[j][3] = 0;  // not terminated
-        workers[j][4] = 0;  // how many times find prime has been ca
+        workers[j][4] = 0;  // how many times find prime has been called
         pthread_create(&id[j], NULL, worker_thread, (void*) &thread_ids[j]);
     }
-
+    
+    i = 0;
+    buffer = (int*) malloc(1*sizeof(int));
     do
-    {   
-        
-        // if(workers[0][1] == 0)      // it is available //
-        // {
-        //     printf("Enter a positive integer: ");
-        //     scanf("%d", &number);
-        //     workers[0][0] = number;
-        //     while(workers[0][2] < 0);   // it is valid //
-        //     printf("The result is %d\n", workers[0][2]);
-        // }
+    {
+        scanf(" %d", &buffer[i]);
+        i++;
+        buffer = (int*) realloc(buffer, sizeof(int) * (i+1));
+    }
+    while (buffer[i-1] >= 0);
 
+    while (buffer[buffer_pos] >= 0)
+    {   
         for(i = 0; i < num_threads; i++)
         {
             if(workers[i][1] == 0)  // not busy //
@@ -126,57 +134,68 @@ int main(int argc, char *argv[])      // argument is N //
                     // printf("The flag is %d\n", (workers[i][2]));
                     // workers[i][2] = -1;
                 }
-                
+                //sleep(0.1);
+                workers[i][0] = buffer[buffer_pos];
+                buffer_pos++;
 
-                // while (!valid_input) 
-                // {
-                //     printf("Enter a positive integer: ");
-                //     if (scanf(" %d", &number) == 1) 
-                //     {
-                //         valid_input = 1;
-                //     } else 
-                //     {
-                //         printf("Invalid input. Please enter a valid integer.\n");
-                //         while (getchar() != '\n'); // Clear input buffer
-                //     }
-                // }
-                scanf(" %d", &number);
-                // printf("scanf reads %d\n", number);
-                sleep(0.001);
-
-                if(number < 0)
-                {   
-                    int sum = workers[0][4] + workers[1][4] + workers[2][4] + workers[3][4];
-                    
-                    printf("The sum is %d\n", sum);
-
-                    return 0;
-                    // for(j = 0; j < num_threads; j++)
-                    // {
-                    //     workers[j][3] = 1;
-                    // }
-                }
-                workers[i][0] = number;
-
+                if(buffer[buffer_pos] < 0)
+                    break;
             }
         }
+    } 
 
+    i = 0;
+    counter = 0;
+    while (counter < num_threads)
+    {
+        if(i == num_threads)
+            i = 0;
+        if(workers[i][1] == 0)
+            counter++;
 
-        // for() 
-        // {
-        //     if(not_busy)
-        //         if(flag >= 0)
-        //             print flag
-        //             flag = negative
-                    
-        //         scanf
-        // }
-    } while (number >= 0);
+        i++ ;
+    }
     
-    // for (j = 0; j < num_threads; j++) {
-    //     pthread_exit(id[j]); // Cancel each thread
+    //int sum = 0;   
+    for(i = 0; i < num_threads; i++)
+    {
+        //sum = sum + workers[i][4];
+        workers[i][3] = 1;
+    } 
+
+    // for (int i = 0; i < num_threads; i++) {
+    //     pthread_join(id[i], NULL);
     // }
+    
+    i = 0;
+    counter = 0;
+    while(counter < num_threads)
+    {
+        if(i == num_threads)
+            i = 0;
 
+        if(workers[i][3] == -1)
+            counter++;
+        i++;
+    }
 
-  return 0;
+    printf("it is close\n");
+    //sleep(10);
+
+    int sum = 0;   
+    for(i = 0; i < num_threads; i++)
+    {
+        sum = sum + workers[i][4];
+    } 
+    printf("The sum is %d\n", sum);
+
+    return 0;
 }
+
+
+
+
+
+
+
+
