@@ -1,0 +1,185 @@
+threads:20
+created thread id: 140426982659840d
+created thread id: 140426974267136d
+created thread id: 140426965874432d
+created thread id: 140426957481728d
+created thread id: 140426949089024d
+created thread id: 140426940696320d
+created thread id: 140426932303616d
+created thread id: 140426923910912d
+created thread id: 140426915518208d
+created thread id: 140426907125504d
+created thread id: 140426898732800d
+created thread id: 140426890340096d
+created thread id: 140426881947392d
+created thread id: 140426873554688d
+created thread id: 140426865161984d
+created thread id: 140426856769280d
+created thread id: 140426848376576d
+created thread id: 140426839983872d
+created thread id: 140426831591168d
+created thread id: 140426823198464d
+found active worker in pos 0
+pos 0. number 35
+found active worker in pos 1
+pos 1. number 2
+found active worker in pos 2
+2: prime!
+pos 2. number 3
+found active worker in pos 3
+3: prime!
+35: not prime!
+pos 3. number 4
+found active worker in pos 4
+pos 4. number 5
+4: not prime!
+5: prime!
+found active worker in pos 5
+pos 5. number 6
+found active worker in pos 6
+pos 6. number 7
+6: not prime!
+7: prime!
+found active worker in pos 7
+pos 7. number 8
+found active worker in pos 8
+pos 8. number 9
+8: not prime!
+found active worker in pos 9
+pos 9. number 6
+9: not prime!
+6: not prime!
+found active worker in pos 10
+pos 10. number 2
+found active worker in pos 11
+2: prime!
+pos 11. number 3
+found active worker in pos 12
+pos 12. number 4
+3: prime!
+found active worker in pos 13
+pos 13. number 5
+5: prime!
+found active worker in pos 14
+pos 14. number 3
+found active worker in pos 15
+3: prime!
+pos 15. number 7
+found active worker in pos 16
+pos 16. number 8
+found active worker in pos 17
+pos 17. number 9
+found active worker in pos 18
+pos 18. number 5
+found active worker in pos 19
+4: not prime!
+pos 19. number 2
+found active worker in pos 0
+pos 0. number 3
+found active worker in pos 1
+3: prime!
+pos 1. number 4
+found active worker in pos 2
+4: not prime!
+pos 2. number 5
+5: prime!
+found active worker in pos 3
+pos 3. number 6
+6: not prime!
+found active worker in pos 4
+pos 4. number 7
+7: prime!
+found active worker in pos 5
+pos 5. number 8
+8: not prime!
+found active worker in pos 6
+pos 6. number 9
+found active worker in pos 7
+9: not prime!
+pos 7. number 8
+8: not prime!
+found active worker in pos 8
+pos 8. number 2
+found active worker in pos 9
+2: prime!
+pos 9. number 3
+3: prime!
+found active worker in pos 10
+pos 10. number 4
+found active worker in pos 11
+4: not prime!
+pos 11. number 5
+found active worker in pos 12
+5: prime!
+pos 12. number 6
+6: not prime!
+found active worker in pos 13
+pos 13. number 7
+found active worker in pos 14
+7: prime!
+pos 14. number 8
+8: not prime!
+found active worker in pos 0
+pos 0. number 9
+9: not prime!
+found active worker in pos 1
+pos 1. number 4
+4: not prime!
+found active worker in pos 2
+pos 2. number 2
+2: prime!
+found active worker in pos 3
+pos 3. number 3
+3: prime!
+found active worker in pos 4
+pos 4. number 4
+found active worker in pos 5
+4: not prime!
+pos 5. number 5
+found active worker in pos 6
+5: prime!
+pos 6. number 6
+found active worker in pos 7
+pos 7. number 7
+found active worker in pos 8
+6: not prime!
+pos 8. number 8
+7: prime!
+8: not prime!
+found active worker in pos 9
+pos 9. number 9
+9: not prime!
+found active worker in pos 10
+pos 10. number 6
+6: not prime!
+found active worker in pos 11
+pos 11. number 2
+found active worker in pos 12
+2: prime!
+pos 12. number 3
+3: prime!
+found active worker in pos 13
+pos 13. number 4
+4: not prime!
+found active worker in pos 14
+pos 14. number 5
+found active worker in pos 0
+5: prime!
+pos 0. number 6
+6: not prime!
+found active worker in pos 1
+pos 1. number 7
+found active worker in pos 2
+7: prime!
+pos 2. number 8
+8: not prime!
+found active worker in pos 3
+pos 3. number 9
+9: not prime!
+exiting
+5: prime!
+2: prime!
+9: not prime!
+8: not prime!
+7: prime!
+main is exiting

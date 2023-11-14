@@ -144,17 +144,33 @@ int main(int argc, char *argv[])      // argument is N //
         }
     } 
 
-    i = 0;
-    counter = 0;
-    while (counter < num_threads)
-    {
-        if(i == num_threads)
-            i = 0;
-        if(workers[i][1] == 0)
-            counter++;
+    // i = 0;
+    // counter = 0;
+    // while (1)
+    // {
+    //     if(i == num_threads)
+    //         i = 0;
+    //     if(workers[i][1] == 0)
+    //         counter++;
 
-        i++ ;
+    //     i++ ;
+    // }
+
+    while(1)
+    {
+        counter = 0;
+        for(j = 0; j < num_threads; j++)
+        {
+            if(workers[j][1] == 0)     // thread available //
+            {
+                counter++;
+            }
+        }
+        if(counter == num_threads)
+            break;
+
     }
+    printf("Counter is %d\n", counter);
     
     //int sum = 0;   
     for(i = 0; i < num_threads; i++)

@@ -1,0 +1,45 @@
+Threads created
+number 2 is prime!
+number 7 is prime!
+number 8 is not prime!
+number 9 is not prime!
+number 5 is prime!
+number 2 is prime!
+number 3 is prime!
+number 4 is not prime!
+number 5 is prime!
+number 6 is not prime!
+number 7 is prime!
+number 8 is not prime!
+number 9 is not prime!
+number 8 is not prime!
+number 2 is prime!
+number 3 is prime!
+number 4 is not prime!
+number 5 is prime!
+number 6 is not prime!
+number 7 is prime!
+number 8 is not prime!
+number 9 is not prime!
+number 4 is not prime!
+number 2 is prime!
+number 3 is prime!
+number 4 is not prime!
+number 5 is prime!
+number 6 is not prime!
+number 7 is prime!
+number 8 is not prime!
+number 9 is not prime!
+number 6 is not prime!
+number 2 is prime!
+number 3 is prime!
+number 4 is not prime!
+number 5 is prime!
+number 6 is not prime!
+number 7 is prime!
+number 4 is not prime!
+number 35 is not prime!
+number 9 is not prime!
+Invalid number
+number 8 is not prime!
+number 

@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "hw1_1_lib.h": "c"
+        "hw1_1_lib.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c"
     }
 }

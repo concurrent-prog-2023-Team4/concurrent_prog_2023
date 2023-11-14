@@ -9,6 +9,7 @@ struct thread_t{
     pthread_t thread_id;
     int status;
     int value;
+    int iter;
 };
 
 // Function that tests if a number is prime or not.
@@ -30,7 +31,8 @@ void *worker_func(void *ptr1){
 
     ptr =(struct thread_t *)ptr1;
     
-    while(1){
+    while(1)
+    {
         while(1){
             if(((ptr->status) == 1) || ((ptr->status) == -1)){ //if a worker is busy or is notified by main to terminate --> break, else yield.
                 break;
@@ -44,6 +46,7 @@ void *worker_func(void *ptr1){
         //checking if worker's status is 1 to call primetest.
         if((ptr->status) == 1){
             result = primetest(ptr->value);
+            ptr->iter = ptr->iter + 1;
 			if(result == 1){
 				printf("%d: prime!\n", ptr->value);
 			}
@@ -76,6 +79,7 @@ int main(int argc, char* argv[]){
     // Creating workers.
     for(i = 0; i < nthreads; i++){
 		worker[i].status = 0;
+        worker[i].iter = 0;
         res = pthread_create(&(worker[i].thread_id), NULL, &worker_func, (void*)&worker[i]);
 		printf("created thread id: %lud\n", worker[i].thread_id);
         if(res){
@@ -141,6 +145,12 @@ int main(int argc, char* argv[]){
         }
         pthread_yield();
     }
+    int sum = 0;
+    for(int i = 0; i < nthreads; i++)
+    {
+        sum = sum + worker[i].iter;
+    }
+    printf("the sum is %d\n", sum);
     
     printf("main is exiting\n");
     return(0);
