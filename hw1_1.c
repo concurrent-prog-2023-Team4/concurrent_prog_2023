@@ -69,6 +69,8 @@ void *thread_func_1(void *argv)
 
     exit_main = 1;
 
+    pthread_exit(NULL);
+
 }
 
 void *thread_func_2(void *argv)
@@ -114,6 +116,8 @@ void *thread_func_2(void *argv)
         pipe_write(1, buffer[i]);      // write a char to pipe_1 //
     }
     pipe_writeDone(1);
+    
+    pthread_exit(NULL);
 }
 
 int main()
@@ -150,7 +154,7 @@ int main()
 
     while(fgets(line, sizeof(line), stdin) != NULL)
     {
-        strncat(text, line, sizeof(line));
+        strncat(text, line, sizeof(text));
     }
 
     // while( scanf("%s ", text) != EOF);
