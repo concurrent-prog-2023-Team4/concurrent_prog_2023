@@ -22,11 +22,7 @@ int pipe_open (int size)
     if(pipe_ptr == NULL)
         return -2;  // malloc failed
 
-    // for(i = 0; i < size; i++)
-    // {
-    //     pipe_ptr[i] = 'DLE';        // I think it is NULL -- non-printable char
-    // }
-   
+ 
     for(i = 0; i < 5; i++)
     {
         if(pipe_list[i].size == 0) //If there's no pipe in that slot, create pipe here
@@ -53,7 +49,6 @@ int pipe_write(int p, char c)
     int currWrite = pipe_list[p].write;
     int currSize = pipe_list[p].size;
 
-    //while(pipe_list[p].pipe[currWrite] != '\0');
     
     pipe_list[p].pipe[currWrite] = c;
 
@@ -97,67 +92,24 @@ int pipe_read(int p, char *c)   //  it is string
             return 0;   // if pipe is empty and write is close  
         }
     }
-    
-    // if( (pipe_list[p].read == -1) && (pipe_list[p].write == -1) )
-    // {
-    //     return 0;   // if pipe is empty and write is close  
-    // }
 
-    // c = pipe_list[p].pipe[currRead];
-
-    while(pipe_list[p].pipe[currRead] == '\0');
+    while(pipe_list[p].pipe[currRead] == '\0')
+    {
+        if(pipe_list[p].write == -1)
+            break;
+    }
 
     c = strncat(c, &pipe_list[p].pipe[currRead], 1);
     pipe_list[p].pipe[currRead] = '\0';
-    pipe_list[p].read++;
+
+    if(pipe_list[p].read + 1 == pipe_list[p].size)
+    {
+        pipe_list[p].read = 0;
+    }
+    else 
+    {
+        pipe_list[p].read++;
+    }
     
     return 1;
 }
-
-
-// int main()
-// {
-//     int i;
-//     char *text = NULL;
-
-//     for(i = 0; i < 5; i++)
-//     {
-//         pipe_info_init(pipe_list[i]);
-//     }
-
-//     int newPipe = pipe_open(5);
-//     for( i = 0; i < 6; i++) 
-//     {
-//         pipe_write(newPipe, 'a' + i);
-//     }
-//     pipe_writeDone(newPipe);
-
-//     text = (char*) calloc((pipe_list[newPipe].size+1), sizeof(char) );      // it has to be calloc because it adds \0
-
-//     int k = pipe_write(newPipe, '3');
-//     printf("%d\n", k);
-//     printf("%s", pipe_list[newPipe].pipe);
-//     printf("\n");
-
-//     pipe_read(newPipe, text);
-//     pipe_read(newPipe, text);
-//     pipe_read(newPipe, text);
-//     pipe_read(newPipe, text);
-//     pipe_read(newPipe, text);
-//     pipe_read(newPipe, text);
-
-//     printf("The text is %s\n", text);
-
-    
-    
-//     #ifdef DEBUG
-//     for(i = 0; i <  pipe_list[newPipe].size; i++)
-//     {
-//         printf("%c\n", pipe_list[newPipe].pipe[i]);
-//     }
-//     #endif
-
-//     free(text);
-
-//     return 0;
-// }
