@@ -1,10 +1,23 @@
-// thank you maria!
+// HW1 exercise 2
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
 
-int **workers;
+#define DEBUG    
+
+struct worker
+{
+    int number;
+    int status;
+    int size;
+    int *result[2];
+};
+
+struct worker *workers;
+// int **workers;
+
+int **results;
 
 int find_prime(int number)
 {
@@ -30,31 +43,34 @@ int find_prime(int number)
 
 void *worker_thread(void *varg)
 {
-    int *ptr = (int *)varg;
-    int result = -1;
+    struct worker *ptr = (struct worker *)varg;
 
     while(1)
     {
         while(1)
         {
-            if( (ptr[1] == -1) || (ptr[1] == 0) )    // status is terminate //
+            if( ((*ptr).status == -1) || ((*ptr).status == 0) )    // status is terminate //
             {
                 break;  // terminate //
             }
         }
-        if(ptr[1] == -1)    // status is terminate //
+        if((*ptr).status == -1)    // status is terminate //
         {
             break;  // terminate //
         }
 
-        if(ptr[1] == 0)    // is busy //
+        if((*ptr).status == 0)    // is busy //
         {
-            result = find_prime(ptr[0]);
-            ptr[2] = ptr[2] + 1;        // add iterations //
-            ptr[1] = 1;    // available //
+            (*ptr).result[0][(*ptr).size - 1] = (*ptr).number;
+            (*ptr).result[1][(*ptr).size - 1] = find_prime((*ptr).number);
+            (*ptr).size++;
+            (*ptr).result[0] = (int *) realloc((*ptr).result[0], sizeof(int) * (*ptr).size);
+            (*ptr).result[1] = (int *) realloc((*ptr).result[1], sizeof(int) * (*ptr).size);
+            // ptr[2] = ptr[2] + 1;        // add iterations //
+            (*ptr).status = 1;    // available //
         }
     }
-    ptr[1] = -2;   // notify main i am terminating //
+    (*ptr).status = -2;   // notify main i am terminating //
     pthread_exit(NULL);
 }
 
@@ -63,38 +79,36 @@ int main(int argc, char *argv[])
     int num_threads;
     int i = 0, j = 0;
     int number = -1;
-    int flag;
     int counter = 0;
+    int sum = 0;
+
 
     if(argv[1] != NULL)
         num_threads = atoi(argv[1]);
 
     pthread_t id[num_threads];      // ids of threads //
 
+    workers = (struct worker *) calloc(num_threads, sizeof(struct worker));
 
-    workers = (int**) calloc(num_threads, sizeof(int*));
-
-    for(int i = 0; i < num_threads; i++)        // create array of workers
+    for(i = 0; i < num_threads; i++)
     {
-        workers[i] = (int*) calloc(3, sizeof(int));   
+        workers[i].number = -1;
+        workers[i].status = 1;
+        workers[i].result[0] = (int*) calloc(1, sizeof(int));   // number
+        workers[i].result[1] = (int*) calloc(1, sizeof(int));   // result
+        workers[i].result[1][0] = 1;
+        workers[i].result[0][0] = -1;
+        workers[i].size = 1;
     }
 
     for(i = 0; i < num_threads; i++)
     {
-        workers[i][0] = -1;     // initialize number //
-        workers[i][1] = 1;      // status available //
-        workers[i][2] = 0;     // number of iterations // 
-    }
-
-    for(i = 0; i < num_threads; i++)
-    {
-        pthread_create(&id[i], NULL, worker_thread, (void*) workers[i]);
+        pthread_create(&id[i], NULL, worker_thread, (void*) (workers + i) );
     }
     printf("Threads created\n");
 
     do
     {
-        //printf("Add input\n");
         scanf("%d", &number);
         if(number <= 0)
         {
@@ -106,15 +120,15 @@ int main(int argc, char *argv[])
             if(j == num_threads)
                 j = 0;
 
-            if(workers[j][1] == 1)
+            if(workers[j].status == 1)
             {
                 break;
             }
             j++;
         }
 
-        workers[j][0] = number;     // give work to slaves //
-        workers[j][1] = 0;         // make thread busy //
+        workers[j].number = number;     // give work to slaves //
+        workers[j].status = 0;         // make thread busy //
 
 
     }while(number > 0);
@@ -124,7 +138,7 @@ int main(int argc, char *argv[])
         counter = 0;
         for(j = 0; j < num_threads; j++)
         {
-            if(workers[j][1] == 1)     // thread available //
+            if(workers[j].status == 1)     // thread available //
             {
                 counter++;
             }
@@ -133,11 +147,10 @@ int main(int argc, char *argv[])
             break;
 
     }
-    printf("Counter is %d\n", counter);
 
     for(i = 0; i < num_threads; i++)
     {
-        workers[i][1] = -1;     // inform them to terminate //
+        workers[i].status = -1;     // inform them to terminate //
     }
 
     counter = 0;        // reset counter //
@@ -149,19 +162,33 @@ int main(int argc, char *argv[])
         if(j == num_threads)
             j = 0;
 
-        if(workers[j][1] == -2)     // thread terminated //
+        if(workers[j].status == -2)     // thread terminated //
         {
             counter++;
         }
         j++;
     }
 
-    int sum = 0;
     for(i = 0; i < num_threads; i++)
     {
-        sum = sum + workers[i][2];
+        for(j = 0; j < workers[i].size - 1; j++)
+        {
+            if( workers[i].result[1][j] == 1)
+            {
+                sum++;
+                printf("The number %d is NOT PRIME!\n", workers[i].result[0][j]);
+            }
+            else if( workers[i].result[1][j] == 0)
+            {
+                sum++;
+                printf("The number %d is PRIME!\n", workers[i].result[0][j]);
+            }
+        }
     }
-    printf("Exit success, sum is %d!\n", sum);
+
+    #ifdef DEBUG
+    printf("Total numbers are %d\n", sum);  
+    #endif
 
     return 0;       // EXIT
 }
