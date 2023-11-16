@@ -3,7 +3,7 @@ CXXFLAGS = -Wall -fsanitize=address -g# Compiler flags
 LDFLAGS = -fsanitize=address -lpthread         # Linker flags
 SRC_FILES = $(wildcard *.c)   # List of source files
 OBJ_FILES = $(SRC_FILES:.c=.o)  # List of object files
-TARGET = hw1_1_test   # Final executable name
+TARGET = hw1_1_final   # Final executable name
 
 # Main rule
 all: $(TARGET)
