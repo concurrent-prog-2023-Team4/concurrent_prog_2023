@@ -1,8 +1,8 @@
 #include <stdio.h> 
 #include <stdlib.h> 
 #include <pthread.h>
-  
-// Merges two subarrays of arr[]. 
+
+// Merges two subarrays of arr[]
 // First subarray is arr[l..m] 
 // Second subarray is arr[m+1..r] 
 void merge(int arr[], int l, int m, int r) 
@@ -79,8 +79,36 @@ void mergeSort(int arr[], int l, int r)
 } 
 
 void *thread_func(void *varg) 
-{
+{   
+    int i;
+    int size = 0;
     int *array = (int *)varg;
+
+    for (i = 0; (array+i) != NULL; i++ )
+    {
+        size++ ;  
+    }
+    printf("size is %d\n", size);
+    // int size = sizeof(array) / sizeof(array[0]);
+    // array1 = array/2
+
+    // array2 = array/2
+
+    // pthread_create(array1)
+    // pthread_create(array2)
+    // // if(size < 64)
+    // // {
+    // //     sort
+    // // }
+    // //else
+    
+    // //{
+    //     // open 2 threads
+    //     // merge
+        
+    // //}
+    // //return
+    // pthread_create();
 }
 
 int main(int argc, char *argv[]) 
@@ -89,6 +117,7 @@ int main(int argc, char *argv[])
     FILE *input;
     input = fopen(argv[1], "r");
     int *number = NULL;    // dynamic array for input //
+    pthread_t id;
 
     number = (int *) malloc(sizeof(int) * 1);
 
@@ -105,7 +134,9 @@ int main(int argc, char *argv[])
         printf("Result is %d\n", number[j]);
     }
 
-    free(number);
+    pthread_create(&id, NULL, thread_func, (void *) number);
+
+    free(number);    
 
     return 0;
 }
