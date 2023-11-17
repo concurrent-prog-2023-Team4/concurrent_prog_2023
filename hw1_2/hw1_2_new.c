@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
             j++;
         }
 
-        workers[j].number = number;     // give work to slaves //
+        workers[j].number = number;     // give work //
         workers[j].status = 0;         // make thread busy //
 
 

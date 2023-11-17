@@ -1,7 +1,30 @@
+// Thank you lali you are the best professor we could wish for //
 #include <stdio.h> 
 #include <stdlib.h> 
 #include <pthread.h>
 
+int *numbers;
+int finish;
+
+struct lalis_crew
+{
+    int left, right, finish;
+};
+
+void selectionSort(int arr[], int start, int end) {
+    for (int i = start; i < end; i++) {
+        int min_index = i;
+        for (int j = i + 1; j <= end; j++) {
+            if (arr[j] < arr[min_index]) {
+                min_index = j;
+            }
+        }
+        // Swap the found minimum element with the element at index i
+        int temp = arr[i];
+        arr[i] = arr[min_index];
+        arr[min_index] = temp;
+    }
+}
 // Merges two subarrays of arr[]
 // First subarray is arr[l..m] 
 // Second subarray is arr[m+1..r] 
@@ -10,7 +33,7 @@ void merge(int arr[], int l, int m, int r)
     int i, j, k; 
     int n1 = m - l + 1; 
     int n2 = r - m; 
-  
+
     // Create temp arrays 
     int L[n1], R[n2]; 
   
@@ -60,83 +83,93 @@ void merge(int arr[], int l, int m, int r)
     } 
 } 
   
-// l is for left index and r is 
-// right index of the sub-array 
-// of arr to be sorted 
-void mergeSort(int arr[], int l, int r) 
-{ 
-    if (l < r) { 
-        // Same as (l+r)/2, but avoids 
-        // overflow for large l and h 
-        int m = l + (r - l) / 2; 
-  
-        // Sort first and second halves 
-        mergeSort(arr, l, m); 
-        mergeSort(arr, m + 1, r); 
-  
-        merge(arr, l, m, r); 
-    } 
-} 
 
 void *thread_func(void *varg) 
 {   
-    int i;
-    int size = 0;
-    int *array = (int *)varg;
+    struct lalis_crew *ptr = (struct lalis_crew *)varg;
+    struct lalis_crew *ptrRight = NULL;
+    struct lalis_crew *ptrLeft = NULL;
 
-    for (i = 0; (array+i) != NULL; i++ )
-    {
-        size++ ;  
-    }
-    printf("size is %d\n", size);
-    // int size = sizeof(array) / sizeof(array[0]);
-    // array1 = array/2
-
-    // array2 = array/2
-
-    // pthread_create(array1)
-    // pthread_create(array2)
-    // // if(size < 64)
-    // // {
-    // //     sort
-    // // }
-    // //else
+    int size = ptr->right - ptr->left;
     
-    // //{
-    //     // open 2 threads
-    //     // merge
+    if (size <= 64)
+    {
+        //sort
+        selectionSort(numbers, ptr->left, ptr->right);
+    }
+    else
+    {
+        pthread_t left, right;
+
+        ptrLeft = (struct lalis_crew *) calloc(1, sizeof(struct lalis_crew));
+        ptrLeft->left = ptr->left ;     // new left for thread
+        ptrLeft->right = ptr->left + size / 2;
+        ptrLeft->finish = 0;
+
+        ptrRight = (struct lalis_crew *) calloc(1, sizeof(struct lalis_crew));
+        ptrRight->left = ptr->left + size / 2 + 1;     // new left for thread  
+        ptrRight->right = ptr->right;
+        ptrRight->finish = 0;
+
+        //sleep(5);
+        pthread_create(&left, NULL, thread_func, (void *) ptrLeft);
+        pthread_create(&right, NULL, thread_func, (void *) ptrRight);
+        // printf("Thread created\n");
+
         
-    // //}
-    // //return
-    // pthread_create();
+        while (ptrLeft->finish == 0 || ptrRight->finish == 0);
+
+        merge(numbers, ptrLeft->left, ptrLeft->left + size / 2, ptrRight->right);     
+    }
+    
+    ptr->finish = 1;
+    free(ptrLeft);
+    free(ptrRight);
+
+    pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[]) 
 {
-    int i = 0, j;
+    int i = 0;
     FILE *input;
     input = fopen(argv[1], "r");
-    int *number = NULL;    // dynamic array for input //
     pthread_t id;
+    int size = 0;
+    finish = 0;
+    struct lalis_crew* ptr = NULL;
+    
+    numbers = (int *) malloc(sizeof(int) * 1);
 
-    number = (int *) malloc(sizeof(int) * 1);
+    if(argc < 2)
+    {
+        printf("No input file\n");
+        
+        return 1;
+    }
 
-    while (fscanf(input, "%d", &number[i]) == 1) 
+    while (fscanf(input, "%d", &numbers[i]) == 1) 
     {
         // Process the read integer, for example, print it
-        //printf("Read: %d\n", number[i]);
         i++;
-        number = (int *) realloc(number, sizeof(int) * (i+1));
+        numbers = (int *) realloc(numbers, sizeof(int) * (i+1));
     }
+    size = i;
+    
+    ptr = (struct lalis_crew *) calloc(1, sizeof(struct lalis_crew));
+    ptr->left = 0;
+    ptr->right = size -1;
+    ptr->finish = 0;
 
-    for(j = 0; j < i; j++)
-    {
-        printf("Result is %d\n", number[j]);
+    pthread_create(&id, NULL, thread_func, (void*) ptr);
+
+    while(ptr->finish == 0);
+
+    for (i = 0; i < size; i++) {
+        printf(" %d\n", numbers[i]);
     }
-
-    pthread_create(&id, NULL, thread_func, (void *) number);
-
-    free(number);    
-
+    printf("\n");
+    
+    free(ptr);    
     return 0;
 }
