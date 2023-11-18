@@ -1,4 +1,4 @@
-// Thank you lali you are the best professor we could wish for //
+
 #include <stdio.h> 
 #include <stdlib.h> 
 #include <pthread.h>
@@ -6,7 +6,7 @@
 int *numbers;
 int finish;
 
-struct lalis_crew
+struct arr_positions
 {
     int left, right, finish;
 };
@@ -86,9 +86,9 @@ void merge(int arr[], int l, int m, int r)
 
 void *thread_func(void *varg) 
 {   
-    struct lalis_crew *ptr = (struct lalis_crew *)varg;
-    struct lalis_crew *ptrRight = NULL;
-    struct lalis_crew *ptrLeft = NULL;
+    struct arr_positions *ptr = (struct arr_positions *)varg;
+    struct arr_positions *ptrRight = NULL;
+    struct arr_positions *ptrLeft = NULL;
 
     int size = ptr->right - ptr->left;
     
@@ -101,12 +101,12 @@ void *thread_func(void *varg)
     {
         pthread_t left, right;
 
-        ptrLeft = (struct lalis_crew *) calloc(1, sizeof(struct lalis_crew));
+        ptrLeft = (struct arr_positions *) calloc(1, sizeof(struct arr_positions));
         ptrLeft->left = ptr->left ;     // new left for thread
         ptrLeft->right = ptr->left + size / 2;
         ptrLeft->finish = 0;
 
-        ptrRight = (struct lalis_crew *) calloc(1, sizeof(struct lalis_crew));
+        ptrRight = (struct arr_positions *) calloc(1, sizeof(struct arr_positions));
         ptrRight->left = ptr->left + size / 2 + 1;     // new left for thread  
         ptrRight->right = ptr->right;
         ptrRight->finish = 0;
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
     pthread_t id;
     int size = 0;
     finish = 0;
-    struct lalis_crew* ptr = NULL;
+    struct arr_positions* ptr = NULL;
     
     numbers = (int *) malloc(sizeof(int) * 1);
 
@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
     }
     size = i;
     
-    ptr = (struct lalis_crew *) calloc(1, sizeof(struct lalis_crew));
+    ptr = (struct arr_positions *) calloc(1, sizeof(struct arr_positions));
     ptr->left = 0;
     ptr->right = size -1;
     ptr->finish = 0;
