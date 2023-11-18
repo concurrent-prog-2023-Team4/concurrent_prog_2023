@@ -16,8 +16,7 @@ int pipe_open (int size)
 
     pipe_ptr = (char *) calloc(size + 1, sizeof(char));
     if(pipe_ptr == NULL)
-        return -2;  // malloc failed
-
+        return -2;  // malloc failed //
  
     for(i = 0; i < 5; i++)
     {
@@ -36,16 +35,15 @@ int pipe_write(int p, char c)
 {   
     if (pipe_list[p].size == 0) 
     {
-        return -1;                  //Check if pipe exists // 
+        return -1;                  // Check if pipe exists // 
     }
     if (pipe_list[p].write == -1) 
     {
-        return 0;                  //Check if pipe's open for writing //
+        return 0;                  // Check if pipe's open for writing //
     }
     int currWrite = pipe_list[p].write;
     int currSize = pipe_list[p].size;
 
-    
     pipe_list[p].pipe[currWrite] = c;
 
     if (currWrite + 1 == currSize) 
@@ -54,6 +52,7 @@ int pipe_write(int p, char c)
     } else {
         pipe_list[p].write++;
     }
+    
     return 1;
 }
 
@@ -64,14 +63,14 @@ int pipe_writeDone(int p)
         return -1;                  // Check if pipe exists //
     }
     pipe_list[p].write = -1;        // Pipe closed for writing //
+
     return 1;
 }
 
-int pipe_read(int p, char *c)   //  it is string //
+int pipe_read(int p, char *c)
 {   
     int currRead = pipe_list[p].read;
     int counter = 0;
-
     
     if(pipe_list[p].write == -1)        // only if pipe is closed for write //
     {
@@ -95,8 +94,8 @@ int pipe_read(int p, char *c)   //  it is string //
             break;
     }
 
-    c = strncat(c, &pipe_list[p].pipe[currRead], 1);
-    pipe_list[p].pipe[currRead] = '\0';
+    c = strncat(c, &pipe_list[p].pipe[currRead], 1);    // concutanate one by one characters in string //
+    pipe_list[p].pipe[currRead] = '\0';        // when it reads a char, make slot \0 //
 
     if(pipe_list[p].read + 1 == pipe_list[p].size)
     {

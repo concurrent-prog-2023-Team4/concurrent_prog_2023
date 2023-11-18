@@ -11,11 +11,15 @@ struct arr_positions
     int left, right, finish;
 };
 
-void selectionSort(int arr[], int start, int end) {
-    for (int i = start; i < end; i++) {
+void selectionSort(int arr[], int start, int end) 
+{
+    for (int i = start; i < end; i++) 
+    {
         int min_index = i;
-        for (int j = i + 1; j <= end; j++) {
-            if (arr[j] < arr[min_index]) {
+        for (int j = i + 1; j <= end; j++) 
+        {
+            if (arr[j] < arr[min_index]) 
+            {
                 min_index = j;
             }
         }
@@ -94,7 +98,6 @@ void *thread_func(void *varg)
     
     if (size <= 64)
     {
-        //sort
         selectionSort(numbers, ptr->left, ptr->right);
     }
     else
@@ -114,8 +117,7 @@ void *thread_func(void *varg)
         pthread_create(&left, NULL, thread_func, (void *) ptrLeft);
         pthread_create(&right, NULL, thread_func, (void *) ptrRight);
         // printf("Thread created\n");
-
-        
+ 
         while (ptrLeft->finish == 0 || ptrRight->finish == 0);
 
         merge(numbers, ptrLeft->left, ptrLeft->left + size / 2, ptrRight->right);     
@@ -149,7 +151,6 @@ int main(int argc, char *argv[])
 
     while (fscanf(input, "%d", &numbers[i]) == 1) 
     {
-        // Process the read integer, for example, print it
         i++;
         numbers = (int *) realloc(numbers, sizeof(int) * (i+1));
     }
@@ -172,5 +173,6 @@ int main(int argc, char *argv[])
     printf("\n");
     
     free(ptr);    
+    
     return 0;
 }

@@ -1,3 +1,5 @@
+Results of performace:
+
 Running with 1 threads:
 Average time: 24.800 seconds
 ----------------------------------------

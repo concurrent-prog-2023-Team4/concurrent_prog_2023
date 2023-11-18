@@ -1,4 +1,4 @@
-// Header file for hw1.1
+// Header file for hw1.1 //
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +11,7 @@ typedef struct pipe_info
     char *pipe;
 } pipe_info;
 
-pipe_info pipe_list[5];    // global array of char pointers to the pipe_list 
+pipe_info pipe_list[5];    // global array of char pointers to the pipe_list //
 
 void pipe_info_init(pipe_info pipe_struct);
 

@@ -4,17 +4,15 @@
 #include <unistd.h>
 #include <pthread.h>
 
-struct worker
+struct worker   // a struct of info for each thread //
 {
-    int number;
-    int status;
-    int size;
-    int *result[2];
+    int number;     // number to proccess //
+    int status;     // can be -2, -1, 0, 1, it communicates with main //
+    int size;       // size of numbers that each thread has proccessed //
+    int *result[2];     // 2d array that keeps the value of each number and if it is prime or not //
 };
 
 struct worker *workers;
-
-int **results;
 
 int find_prime(int number)
 {
@@ -25,11 +23,13 @@ int find_prime(int number)
     if (number == 0 || number == 1)
         flag = 1;
 
-    for (i = 2; i <= number / 2; ++i) {
+    for (i = 2; i <= number / 2; ++i) 
+    {
 
         // if n is divisible by i, then n is not prime
         // change flag to 1 for non-prime number
-        if (number % i == 0) {
+        if (number % i == 0) 
+        {
         flag = 1;
         break;
         }
@@ -63,7 +63,6 @@ void *worker_thread(void *varg)
             (*ptr).size++;
             (*ptr).result[0] = (int *) realloc((*ptr).result[0], sizeof(int) * (*ptr).size);
             (*ptr).result[1] = (int *) realloc((*ptr).result[1], sizeof(int) * (*ptr).size);
-            // ptr[2] = ptr[2] + 1;        // add iterations //
             (*ptr).status = 1;    // available //
         }
     }
@@ -91,8 +90,8 @@ int main(int argc, char *argv[])
     {
         workers[i].number = -1;
         workers[i].status = 1;
-        workers[i].result[0] = (int*) calloc(1, sizeof(int));   // number
-        workers[i].result[1] = (int*) calloc(1, sizeof(int));   // result
+        workers[i].result[0] = (int*) calloc(1, sizeof(int));   // number //
+        workers[i].result[1] = (int*) calloc(1, sizeof(int));   // result //
         workers[i].result[1][0] = 1;
         workers[i].result[0][0] = -1;
         workers[i].size = 1;
@@ -173,18 +172,18 @@ int main(int argc, char *argv[])
             if( workers[i].result[1][j] == 1)
             {
                 sum++;
-                //printf("The number %d is NOT PRIME!\n", workers[i].result[0][j]);
+                printf("The number %d is NOT PRIME!\n", workers[i].result[0][j]);
             }
             else if( workers[i].result[1][j] == 0)
             {
                 sum++;
-                //printf("The number %d is PRIME!\n", workers[i].result[0][j]);
+                printf("The number %d is PRIME!\n", workers[i].result[0][j]);
             }
         }
     }
 
     printf("Total numbers that program calulated are %d\n\n", sum);  
 
-    return 0;       // EXIT
+    return 0;       // EXIT //
 }
 
