@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
     {
         pthread_create(&id[i], NULL, worker_thread, (void*) (workers + i) );
     }
-    printf("Threads created\n");
+    printf("Threads %d created\n", num_threads);
 
     do
     {

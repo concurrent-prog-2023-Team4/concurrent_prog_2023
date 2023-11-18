@@ -105,18 +105,18 @@ void *thread_func(void *varg)
         pthread_t left, right;
 
         ptrLeft = (struct arr_positions *) calloc(1, sizeof(struct arr_positions));
-        ptrLeft->left = ptr->left ;     // new left for thread
+        ptrLeft->left = ptr->left ;     // new left for thread //
         ptrLeft->right = ptr->left + size / 2;
         ptrLeft->finish = 0;
 
         ptrRight = (struct arr_positions *) calloc(1, sizeof(struct arr_positions));
-        ptrRight->left = ptr->left + size / 2 + 1;     // new left for thread  
+        ptrRight->left = ptr->left + size / 2 + 1;     // new left for thread //
         ptrRight->right = ptr->right;
         ptrRight->finish = 0;
 
         pthread_create(&left, NULL, thread_func, (void *) ptrLeft);
         pthread_create(&right, NULL, thread_func, (void *) ptrRight);
-        // printf("Thread created\n");
+        printf("Thread created\n");
  
         while (ptrLeft->finish == 0 || ptrRight->finish == 0);
 
