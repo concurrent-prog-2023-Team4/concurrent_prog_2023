@@ -1,4 +1,4 @@
-// working Version
+// hw1_1 c file //
 #include "hw1_1.h"
 #define MAX_TEXT 6000
 

@@ -111,7 +111,6 @@ void *thread_func(void *varg)
         ptrRight->right = ptr->right;
         ptrRight->finish = 0;
 
-        //sleep(5);
         pthread_create(&left, NULL, thread_func, (void *) ptrLeft);
         pthread_create(&right, NULL, thread_func, (void *) ptrRight);
         // printf("Thread created\n");

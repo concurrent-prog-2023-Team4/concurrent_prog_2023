@@ -13,7 +13,6 @@ struct worker
 };
 
 struct worker *workers;
-// int **workers;
 
 int **results;
 
