@@ -1,0 +1,13 @@
+Readme file for HW1 exercise 3
+------------------------------
+In order to compile hw1_3.c file:
+-> gcc -Wall -g hw1_3.c -o hw1_3 -lpthread -fsanitize=address
+
+In order to run the executable type "./hw1_3" and add the input file (input.txt) as argument:
+-> ./hw1_3 <input.txt> 
+
+The input.txt file that is used for testing contains 1200 random integer numbers.
+
+The program prints the sorted array in stdout, so we recommend redirecting it to a file.
+
+"Team 4"

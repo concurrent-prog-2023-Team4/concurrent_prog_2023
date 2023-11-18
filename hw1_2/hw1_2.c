@@ -4,8 +4,6 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#define DEBUG    
-
 struct worker
 {
     int number;
@@ -176,19 +174,17 @@ int main(int argc, char *argv[])
             if( workers[i].result[1][j] == 1)
             {
                 sum++;
-                printf("The number %d is NOT PRIME!\n", workers[i].result[0][j]);
+                //printf("The number %d is NOT PRIME!\n", workers[i].result[0][j]);
             }
             else if( workers[i].result[1][j] == 0)
             {
                 sum++;
-                printf("The number %d is PRIME!\n", workers[i].result[0][j]);
+                //printf("The number %d is PRIME!\n", workers[i].result[0][j]);
             }
         }
     }
 
-    #ifdef DEBUG
-    printf("Total numbers are %d\n", sum);  
-    #endif
+    printf("Total numbers that program calulated are %d\n\n", sum);  
 
     return 0;       // EXIT
 }

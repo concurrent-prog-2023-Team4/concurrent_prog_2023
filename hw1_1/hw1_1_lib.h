@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct pipe_info {
+typedef struct pipe_info 
+{
     int size;
     int write;
     int read;

@@ -1,0 +1,15 @@
+Readme file for HW1 exercise 2
+------------------------------
+In order to compile hw1_2.c file:
+-> gcc -Wall -g hw1_2.c -o hw1_2 -lpthread -fsanitize=address
+
+In order to run the executable type ./hw1_2 <num_of_threads> and redirect one of the 2 input files (input.txt, primes.txt) from stdin.
+ex: ./hw1_2 8 < primes.txt
+
+For testing, we use 2 files: input.txt that contains 500 random positive numbers and primes.txt that contains ~7500 positive random numbers,
+the last number of both files is negative to make the program stop. 
+
+The program prints each number and if it is prime or not, and we suggest redirecting the stdout in a file.
+ex: ./hw1_2 9 < input.txt > results.txt
+
+"Team 4"

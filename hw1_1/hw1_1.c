@@ -90,7 +90,6 @@ void *thread_func_2(void *argv)
     }
 
     finish = 1;     // send command that write completed //
-////////////////////////
 
     fseek(copy, 0, SEEK_SET);
     fread(buffer, 1, MAX_TEXT, copy);

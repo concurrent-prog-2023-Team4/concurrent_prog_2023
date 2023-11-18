@@ -165,7 +165,9 @@ int main(int argc, char *argv[])
 
     while(ptr->finish == 0);
 
-    for (i = 0; i < size; i++) {
+    printf("The sorted array is: \n");
+    for (i = 0; i < size; i++) 
+    {
         printf(" %d\n", numbers[i]);
     }
     printf("\n");
