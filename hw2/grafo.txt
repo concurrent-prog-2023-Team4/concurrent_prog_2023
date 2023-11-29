@@ -1,0 +1,110 @@
+semget ?
+
+struct mysem_t s;
+    int id;
+    int value
+    sem_t semaphore
+    
+
+
+int mysem_init (mysem_t *s, int n)
+    s.id = semget(key, 1, 0666 | IPC_CREAT);
+    test n = 0 , 1
+    semctl(s.id, 0, SETVAL, n);
+    
+
+    struct semid_ds {
+    struct ipc_perm sem_perm; /* Operation permission structure */
+    time_t          sem_otime; /* Last semop time */
+    unsigned long   sem_nsems; /* Number of semaphores in set */
+    time_t          sem_ctime; /* Last change time */
+};
+
+
+void initializeSystemVSemaphore(struct MySystemVSemaphore* mySem, int initialValue) 
+{
+    key_t key = ftok("/tmp", SEMAPHORE_KEY);  // Generate a unique key
+    int semId = semget(key, 1, IPC_CREAT | 0666);
+
+    if (semId == -1) {
+        perror("semget");
+        exit(EXIT_FAILURE);
+    }
+
+    mySem->semaphoreId = semId;
+
+    // Set the initial value of the semaphore
+    union semun {
+        int val;
+        struct semid_ds* buf;
+        unsigned short* array;
+
+        unsigned short 	sem_num
+        short 	sem_op
+        short 	sem_flg
+
+    } arg;
+    arg.val = initialValue;
+    if (semctl(semId, 0, SETVAL, arg) == -1) {
+        perror("semctl");
+        exit(EXIT_FAILURE);
+    }
+}
+Mutexes (short for mutual exclusion) 
+are a specific type of semaphore that is binary in nature. 
+They are often used to protect critical sections of code, 
+allowing only one thread to enter the critical section at a time. 
+Mutexes are simpler than semaphores and are generally used for 
+scenarios where you need exclusive access to a resource.
+
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#include <errno.h>
+
+typedef struct {
+    int sem_id;  // Semaphore ID for System V semaphore
+    // Other fields if needed
+} mysem_t;
+
+int mysem_init(mysem_t *s, int n) {
+    // Check if the semaphore is already initialized
+    if (s->sem_id != 0) {
+        errno = EINVAL;  // Invalid argument
+        return -1;
+    }
+
+    // Create a new semaphore or get an existing one
+    key_t key = IPC_PRIVATE;  // You might want to use ftok for a more robust key creation
+    int sem_flags = IPC_CREAT | IPC_EXCL | 0666;  // IPC_EXCL ensures that the semaphore is created, not obtained
+    int sem_id = semget(key, 1, sem_flags);
+
+    if (sem_id == -1) {
+        // Error handling, you might want to check errno
+        return -1;
+    }
+
+    // Initialize the semaphore value
+    union semun {
+        int val;
+        struct semid_ds *buf;
+        unsigned short *array;
+        struct seminfo *__buf;
+    } sem_arg;
+
+    sem_arg.val = n;
+    if (semctl(sem_id, 0, SETVAL, sem_arg) == -1) {
+        // Error handling
+        int saved_errno = errno;
+        // Clean up the semaphore
+        semctl(sem_id, 0, IPC_RMID);
+        errno = saved_errno;
+        return -1;
+    }
+
+    // Update the mysem_t structure
+    s->sem_id = sem_id;
+
+    return 1;  // Success
+}
