@@ -1,0 +1,93 @@
+Results of performace:
+
+Running with 1 threads:
+Average time: 24.800 seconds
+----------------------------------------
+Running with 2 threads:
+Average time: 12.471 seconds
+----------------------------------------
+Running with 3 threads:
+Average time: 8.332 seconds
+----------------------------------------
+Running with 4 threads:
+Average time: 6.269 seconds
+----------------------------------------
+Running with 5 threads:
+Average time: 5.082 seconds
+----------------------------------------
+Running with 6 threads:
+Average time: 4.284 seconds
+----------------------------------------
+Running with 7 threads:
+Average time: 3.805 seconds
+----------------------------------------
+Running with 8 threads:
+Average time: 3.326 seconds
+----------------------------------------
+Running with 9 threads:
+Average time: 3.348 seconds
+----------------------------------------
+Running with 10 threads:
+Average time: 3.340 seconds
+----------------------------------------
+Running with 11 threads:
+Average time: 3.372 seconds
+----------------------------------------
+Running with 12 threads:
+Average time: 3.333 seconds
+----------------------------------------
+Running with 13 threads:
+Average time: 3.246 seconds
+----------------------------------------
+Running with 14 threads:
+Average time: 3.236 seconds
+----------------------------------------
+Running with 15 threads:
+Average time: 3.253 seconds
+----------------------------------------
+Running with 16 threads:
+Average time: 3.289 seconds
+----------------------------------------
+Running with 17 threads:
+Average time: 3.297 seconds
+----------------------------------------
+Running with 18 threads:
+Average time: 3.504 seconds
+----------------------------------------
+Running with 19 threads:
+Average time: 3.444 seconds
+----------------------------------------
+Running with 20 threads:
+Average time: 3.531 seconds
+----------------------------------------
+Running with 21 threads:
+Average time: 3.603 seconds
+----------------------------------------
+Running with 22 threads:
+Average time: 3.869 seconds
+----------------------------------------
+Running with 23 threads:
+Average time: 3.753 seconds
+----------------------------------------
+Running with 24 threads:
+Average time: 3.869 seconds
+----------------------------------------
+Running with 25 threads:
+Average time: 3.860 seconds
+----------------------------------------
+Running with 26 threads:
+Average time: 4.090 seconds
+----------------------------------------
+Running with 27 threads:
+Average time: 4.125 seconds
+----------------------------------------
+Running with 28 threads:
+Average time: 4.286 seconds
+----------------------------------------
+Running with 29 threads:
+Average time: 4.260 seconds
+----------------------------------------
+Running with 30 threads:
+Average time: 4.211 seconds
+----------------------------------------
+
