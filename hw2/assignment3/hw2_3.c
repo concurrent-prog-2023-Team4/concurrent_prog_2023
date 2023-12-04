@@ -18,9 +18,11 @@ void *red_car(void *varg)
         if(cur_bridge.color == 'b')
         {
             // break; prepei down
+            #ifdef DEBUG
             mysem_down(&print_sem);
-            // printf("Red is waiting in bridge cause of color and b:%d and r:%d\n", cur_bridge.b_waiting, cur_bridge.r_waiting);
+            printf(ANSI_COLOR_RED "Red is waiting in bridge cause of color and b:%d and r:%d\n" ANSI_COLOR_RESET, cur_bridge.b_waiting, cur_bridge.r_waiting);
             mysem_up(&print_sem);
+            #endif
 
             mysem_down(&r_sem);
         }
@@ -37,10 +39,11 @@ void *red_car(void *varg)
                 else
                 {
                     // down //
+                    #ifdef DEBUG
                     mysem_down(&print_sem);
-                    // printf("Red is waiting in bridge cause of blue waiting to passand b:%d and r:%d\n", cur_bridge.b_waiting, cur_bridge.r_waiting);
+                    printf(ANSI_COLOR_RED "Red is waiting in bridge cause of blue waiting to passand b:%d and r:%d\n" ANSI_COLOR_RESET , cur_bridge.b_waiting, cur_bridge.r_waiting);
                     mysem_up(&print_sem);
-
+                    #endif
                     mysem_down(&r_sem);
                 }
             }
@@ -53,10 +56,12 @@ void *red_car(void *varg)
         else
         {
             // down //
-
+            #ifdef DEBUG
             mysem_down(&print_sem);
-            // printf("Red is waiting in bridge cause of max cars on itand b:%d and r:%d\n", cur_bridge.b_waiting, cur_bridge.r_waiting);
+            printf(ANSI_COLOR_RED "Red is waiting in bridge cause of max cars on it and b:%d and r:%d\n" ANSI_COLOR_RESET, cur_bridge.b_waiting, cur_bridge.r_waiting);
             mysem_up(&print_sem);
+            #endif
+
             mysem_down(&r_sem);
         }
 
@@ -67,22 +72,29 @@ void *red_car(void *varg)
     bridge->on_bridge++;
     bridge->blue_passed = 0;
     bridge->red_passed++;
+    if(bridge->r_waiting > 0 && bridge->on_bridge < bridge->max_cars)
+    {
+        mysem_up(&r_sem);
+    }
     mysem_up(&mtx);
 
+    #ifdef DEBUG
     mysem_down(&print_sem);
-    // printf("Red goes into bridge\n");
+    printf(ANSI_COLOR_RED "Red goes into bridge and on_bridge: %d\n" ANSI_COLOR_RESET, cur_bridge.on_bridge);
     mysem_up(&print_sem);
+    #endif
+
     sleep(3);
+    #ifdef DEBUG
     mysem_down(&print_sem);
-    // printf("Red is exiting bridge\n");
+    printf(ANSI_COLOR_RED "Red is exiting bridge\n" ANSI_COLOR_RESET);
     mysem_up(&print_sem);
+    #endif
     
     mysem_down(&mtx);
     bridge->on_bridge--;
     if(bridge->on_bridge == 0)
         bridge->color = '\0';
-
-    mysem_up(&mtx);
 
     if(bridge->b_waiting > 0)
     {
@@ -92,6 +104,7 @@ void *red_car(void *varg)
     {
         mysem_up(&r_sem);
     }
+    mysem_up(&mtx);
 
     pthread_exit(NULL);
 }
@@ -114,9 +127,11 @@ void *blue_car(void *varg)
         if(cur_bridge.color == 'r')
         {
             // break; prepei down
+            #ifdef DEBUG
             mysem_down(&print_sem);
-            // printf("Blue is waiting in bridge cause of color and b:%d and r:%d\n", cur_bridge.b_waiting, cur_bridge.r_waiting);
+            printf(ANSI_COLOR_BLUE "Blue is waiting in bridge cause of color and b:%d and r:%d\n" ANSI_COLOR_RESET, cur_bridge.b_waiting, cur_bridge.r_waiting);
             mysem_up(&print_sem);
+            #endif
 
             mysem_down(&b_sem);
         }
@@ -132,9 +147,12 @@ void *blue_car(void *varg)
                 else
                 {
                     // down //
+                    #ifdef DEBUG
                     mysem_down(&print_sem);
-                    // printf("Blue is waiting in bridge cause of red waiting to pass and b:%d and r:%d\n", cur_bridge.b_waiting, cur_bridge.r_waiting);
+                    printf(ANSI_COLOR_BLUE "Blue is waiting in bridge cause of red waiting to pass and b:%d and r:%d\n" ANSI_COLOR_RESET, cur_bridge.b_waiting, cur_bridge.r_waiting);
                     mysem_up(&print_sem);
+                    #endif
+
                     mysem_down(&b_sem);
                 }
             }
@@ -147,9 +165,11 @@ void *blue_car(void *varg)
         else
         {
             // down //
+            #ifdef DEBUG
             mysem_down(&print_sem);
-            // printf("Blue is waiting in bridge cause of max cars on itand b:%d and r:%d\n", cur_bridge.b_waiting, cur_bridge.r_waiting);
+            printf(ANSI_COLOR_BLUE "Blue is waiting in bridge cause of max cars on it and b:%d and r:%d\n" ANSI_COLOR_RESET, cur_bridge.b_waiting, cur_bridge.r_waiting);
             mysem_up(&print_sem);
+            #endif
 
             mysem_down(&b_sem);
         }
@@ -161,23 +181,31 @@ void *blue_car(void *varg)
     bridge->on_bridge++;
     bridge->red_passed = 0;
     bridge->blue_passed++;
+    if (bridge->on_bridge < bridge->max_cars && bridge->b_waiting > 0)
+    {
+        mysem_up(&b_sem);
+    }
     mysem_up(&mtx);
 
+    #ifdef DEBUG
     mysem_down(&print_sem);
-    // printf("Blue goes into bridge\n");
+    printf(ANSI_COLOR_BLUE "Blue goes into bridge\n" ANSI_COLOR_RESET);
     mysem_up(&print_sem);
+    #endif
+
     sleep(3);
+
+    #ifdef DEBUG
     mysem_down(&print_sem);
-    // printf("Blue is exiting bridge\n");
+    printf(ANSI_COLOR_BLUE "Blue is exiting bridge\n"ANSI_COLOR_RESET);
     mysem_up(&print_sem);
+    #endif
     
     mysem_down(&mtx);
     
     bridge->on_bridge--;
     if(bridge->on_bridge == 0)
         bridge->color = '\0';
-
-    mysem_up(&mtx);
 
     if(bridge->b_waiting > 0)
     {
@@ -187,10 +215,12 @@ void *blue_car(void *varg)
     {
         mysem_up(&r_sem);
     }
+    mysem_up(&mtx);
 
     pthread_exit(NULL);
 }
 
+#ifndef DEBUG
 void *print_result(void *varg)
 {
     bridge_t cur_bridge;
@@ -210,6 +240,11 @@ void *print_result(void *varg)
         // }
 
         size = cur_bridge.max_cars;
+        // if(size == 0)
+        // {
+        //     sleep(1);
+        //     system("sl");
+        // }
 
         printf("\r");
         printf(ANSI_COLOR_RED "r:%d "ANSI_COLOR_RESET , cur_bridge.r_waiting);
@@ -238,6 +273,7 @@ void *print_result(void *varg)
     pthread_exit(NULL);
 
 }
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -281,8 +317,10 @@ int main(int argc, char *argv[])
     mysem_init(&b_sem, 0);
     mysem_init(&print_sem, 1);
 
+    #ifndef DEBUG
     pthread_create(&ids[i], NULL, print_result, NULL);
     i++;
+    #endif
 
     while (fgets(line, sizeof(line) ,file) != NULL)
     {
@@ -290,18 +328,24 @@ int main(int argc, char *argv[])
         {
             sleep(atoi(line+1));
             pthread_create(&ids[i], NULL, red_car, NULL);
+
+            #ifdef DEBUG
             mysem_down(&print_sem);
-            // printf("Red created with sleep %d\n", atoi(line+1));
+            printf(ANSI_COLOR_RED "Red created with sleep %d\n" ANSI_COLOR_RESET, atoi(line+1));
             mysem_up(&print_sem);
+            #endif
+
             i++ ;
         }
         else if(line[0] == 'b')
         {
             sleep(atoi(line+1));
             pthread_create(&ids[i], NULL, blue_car, NULL);
+            #ifdef DEBUG
             mysem_down(&print_sem);
-            // printf("Blue created with sleep %d\n", atoi(line+1));
+            printf(ANSI_COLOR_BLUE "Blue created with sleep %d\n" ANSI_COLOR_RESET, atoi(line+1));
             mysem_up(&print_sem);
+            #endif
             i++;
         }
     }
