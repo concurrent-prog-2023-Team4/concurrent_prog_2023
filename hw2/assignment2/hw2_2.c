@@ -1,413 +1,257 @@
-#include "hw2_3.h"
+// HW1 exercise 2
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
+#include "../assignment1/mysem.h"
 
-/*Red sees color:
-  Red tries to be polite
-  blockedddd
-  */
+// #define DEBUG
 
-
-
-
-void *red_car(void *varg)
+struct worker   // a struct of info for each thread //
 {
-    // bridge_t bridge;
-    
-    mysem_down(&mtx);
-    int *red = (int *) varg;
-    int red_num = *red;
-    bridge->r_waiting++;
-    mysem_up(&mtx);
+    int number;     // number to proccess //
+    int status;     // can be -2, -1, 0, 1, it communicates with main //
+    int size;       // size of numbers that each thread has proccessed //
+    int *result[2];     // 2d array that keeps the value of each number and if it is prime or not //
+    int pos;
+    mysem_t sem;
+    mysem_t finish;
+    mysem_t term;
+    // int done;
+};
 
-    while (1)
+mysem_t mtx;
+
+int done;
+
+struct worker *workers;
+
+int find_prime(int number)
+{
+    int i, flag = 0;
+
+    // 0 and 1 are not prime numbers
+    // change flag to 1 for non-prime number
+    if (number == 0 || number == 1)
+        flag = 1;
+
+    for (i = 2; i <= number / 2; ++i) 
     {
-        // down
-        //mysem_down(&mtx);
-        //bridge = *bridge;
-        //mysem_up(&mtx);
-        mysem_down(&mtx);
-        // mysem_down(&print_sem);
-        printf("Red (%d) sees color: %c\n", red_num, bridge->color);
-        // mysem_up(&print_sem);
 
-        if (bridge->b_waiting > 0 && bridge->r_waiting > 0 && bridge->color == '\0' && bridge->blue_passed < 2*bridge->max_cars)
+        // if n is divisible by i, then n is not prime
+        // change flag to 1 for non-prime number
+        if (number % i == 0) 
         {
-            // mysem_down(&print_sem);
-            printf("Red (%d) tries to be polite\n", red_num);
-            // mysem_up(&print_sem);
-            // mysem_up(&b_sem);
-            mysem_up(&mtx);
-            mysem_down(&r_sem);
-        }
-
-        else if(bridge->color == 'b')
-        {
-            // break; prepei down
-            #ifdef DEBUG
-            // mysem_down(&print_sem);
-            printf(ANSI_COLOR_RED "Red (%d) is waiting in bridge cause of color and b:%d and r:%d and on bridge %d\n" ANSI_COLOR_RESET, red_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge);
-            // mysem_up(&print_sem);
-            #endif
-            mysem_up(&mtx);
-            mysem_down(&r_sem);
-        }
-        else if(bridge->on_bridge < bridge->max_cars)
-        {
-            if(bridge->b_waiting > 0)
-            {
-                if(bridge->red_passed < 2*bridge->max_cars)
-                {
-                    // pernaei //
-                    bridge->r_waiting--;
-                    bridge->color = 'r';
-                    bridge->on_bridge++;
-                    bridge->blue_passed = 0;
-                    bridge->red_passed++;
-                    mysem_up(&mtx);
-                    break;
-                }
-                else
-                {
-                    // down //
-                    #ifdef DEBUG
-                    // mysem_down(&print_sem);
-                    printf(ANSI_COLOR_RED "Red (%d) is waiting in bridge cause of blue waiting to pass and and b:%d and r:%d and on bridge %d\n" ANSI_COLOR_RESET, red_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge);
-                    // mysem_up(&print_sem);
-                    #endif
-                    mysem_up(&mtx);
-                    mysem_down(&r_sem); 
-                }
-            }
-            else 
-            {
-                // pernaei //
-                bridge->r_waiting--;
-                bridge->color = 'r';
-                bridge->on_bridge++;
-                bridge->blue_passed = 0;
-                bridge->red_passed++;
-                mysem_up(&mtx);
-                break;
-            }
-        }
-        else
-        {
-            // down //
-            #ifdef DEBUG
-            // mysem_down(&print_sem);
-            printf(ANSI_COLOR_RED "Red (%d) is waiting in bridge cause of max cars on it and and b:%d and r:%d and on bridge %d\n" ANSI_COLOR_RESET, red_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge);
-            // mysem_up(&print_sem);
-            #endif
-            mysem_up(&mtx);
-            mysem_down(&r_sem);
+            flag = 1;
+            break;
         }
     }
-
-    if(bridge->r_waiting > 0 && bridge->on_bridge < bridge->max_cars)
-    {
-        mysem_up(&r_sem);
-    }
-    // mysem_up(&mtx);
-
-    #ifdef DEBUG
-    mysem_down(&mtx);
-    printf(ANSI_COLOR_RED "Red (%d) goes into bridge and and b:%d and r:%d and on bridge %d. color: %c\n" ANSI_COLOR_RESET, red_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge, bridge->color);
-    mysem_up(&mtx);
-    #endif
-
-    sleep(6);
     
-    mysem_down(&mtx);
-    bridge->on_bridge--;
-     #ifdef DEBUG
-    // mysem_down(&print_sem);
-    printf(ANSI_COLOR_RED "Red (%d) is exiting bridge and b:%d and r:%d and on bridge %d. Reds passed: %d.\n" ANSI_COLOR_RESET, red_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge, bridge->red_passed);
-    // mysem_up(&print_sem);
-    #endif
-    if(bridge->on_bridge == 0)
-        bridge->color = '\0';
-    
-    // if (bridge->b_waiting > 0 && bridge->r_waiting > 0 && bridge->color == '\0' && bridge->blue_passed < 2*bridge->max_cars)
-    // {
-    //     mysem_up(&b_sem);   //priority
-    // }
-    //else 
-    //{
-        if(bridge->b_waiting > 0)
-        {
-            mysem_up(&b_sem);
-        }
-        if(bridge->r_waiting > 0)
-        {
-            mysem_up(&r_sem);
-        }
-    //}
-   
-    mysem_up(&mtx);
-
-    pthread_exit(NULL);
+    return flag; 
 }
 
-
-void *blue_car(void *varg)
+void *worker_thread(void *varg)
 {
-    int *blue = (int *) varg;
-    int blue_num = *blue;
-    // bridge_t bridge;
-    mysem_down(&mtx);
-    bridge->b_waiting++;
-    mysem_up(&mtx);
-
-    while (1)
-    {
-        // down
-        // mysem_down(&mtx);
-        // bridge = *bridge;
-        mysem_down(&mtx);
-        // mysem_down(&print_sem);
-        printf("Blue (%d) sees color: %c\n", blue_num, bridge->color);
-        // mysem_up(&print_sem);
-        if(bridge->color == 'r')
-        {
-            // break; prepei down
-            #ifdef DEBUG
-            // mysem_down(&print_sem);
-            printf(ANSI_COLOR_BLUE "Blue (%d) is waiting in bridge cause of color and b:%d and r:%d and on bridge %d\n" ANSI_COLOR_RESET, blue_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge);
-            // mysem_up(&print_sem);
-            #endif
-            mysem_up(&mtx);
-            mysem_down(&b_sem);
-        }
-        else if(bridge->on_bridge < bridge->max_cars)
-        {
-            if(bridge->r_waiting > 0)
-            {
-                if(bridge->blue_passed < 2*bridge->max_cars)
-                {
-                    // pernaei //
-                    mysem_up(&mtx);
-                    break;
-                }
-                else
-                {
-                    // down //
-                    #ifdef DEBUG
-                    // mysem_down(&print_sem);
-                    printf(ANSI_COLOR_BLUE "Blue (%d) is waiting in bridge cause of red waiting to pass and b:%d and r:%d and on bridge %d\n" ANSI_COLOR_RESET, blue_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge);
-                    // mysem_up(&print_sem);
-                    #endif
-                    mysem_up(&mtx);
-                    mysem_down(&b_sem);
-                }
-            }
-            else
-            {
-                // pernaei //
-                mysem_up(&mtx);
-                break;
-            }
-        }
-        else
-        {
-            // down //
-            #ifdef DEBUG
-            // mysem_down(&print_sem);
-            printf(ANSI_COLOR_BLUE "Blue (%d) is waiting in bridge cause of max cars on it and b:%d and r:%d and on bridge %d\n" ANSI_COLOR_RESET, blue_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge);
-            // mysem_up(&print_sem);
-            #endif
-            mysem_up(&mtx);
-            mysem_down(&b_sem);
-        }
-
-    }
-    mysem_down(&mtx);
-    bridge->b_waiting--;
-    bridge->color = 'b';
-    bridge->on_bridge++;
-    bridge->red_passed = 0;
-    bridge->blue_passed++;
-    if (bridge->on_bridge < bridge->max_cars && bridge->b_waiting > 0)
-    {
-        mysem_up(&b_sem);
-    }
-    mysem_up(&mtx);
-
-    #ifdef DEBUG
-    mysem_down(&mtx);
-    printf(ANSI_COLOR_BLUE "Blue (%d) goes into bridge and b:%d and r:%d and on bridge %d. color: %c\n" ANSI_COLOR_RESET, blue_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge, bridge->color);
-    mysem_up(&mtx);
-    #endif
-
-    sleep(6);
-
-
-    mysem_down(&mtx);
-    bridge->on_bridge--;
-    #ifdef DEBUG
-    // mysem_down(&print_sem);
-    printf(ANSI_COLOR_BLUE "Blue (%d) is exiting bridge b:%d and r:%d and on bridge %d. Blues passed: %d\n" ANSI_COLOR_RESET, blue_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge, bridge->blue_passed);
-    // mysem_up(&print_sem);
-    #endif
-    if(bridge->on_bridge == 0)
-        bridge->color = '\0';
-
-    // if (bridge->b_waiting > 0 && bridge->r_waiting > 0 && bridge->color == '\0' && bridge->blue_passed < 2*bridge->max_cars)
-    // {
-    //     mysem_up(&b_sem);   //priority
-    // }
-    //else 
-    //{
-        if(bridge->b_waiting > 0)
-        {
-            mysem_up(&b_sem);
-        }
-        if(bridge->r_waiting > 0)
-        {
-            mysem_up(&r_sem);
-        }
-    //}
-    mysem_up(&mtx);
-
-    pthread_exit(NULL);
-}
-
-#ifndef DEBUG
-void *print_result(void *varg)
-{
-    bridge_t bridge;
-    int size = 0, i;
+    int result = -2;
+    struct worker *ptr = (struct worker *)varg;
+    int done_value;
 
     while(1)
     {
-        usleep(10);    // wait to see the next value //
-
-        mysem_down(&print_sem); // read data //
-        bridge = *bridge;
-        mysem_up(&print_sem);
-
-        // if(bridge->b_waiting == 0 && bridge->r_waiting == 0 && bridge->on_bridge == 0)
-        // {
-        //     break;
-        // }
-
-        size = bridge->max_cars;
-        // if(size == 0)
-        // {
-        //     sleep(1);
-        //     system("sl");
-        // }
-
-        printf("\r");
-        printf(ANSI_COLOR_RED "r:%d "ANSI_COLOR_RESET , bridge->r_waiting);
-        for(i = 0; i < size; i++)
-        {
-            if(i < bridge->on_bridge)
-            {
-                if(bridge->color == 'r')
-                {
-                    printf(ANSI_COLOR_RED "R " ANSI_COLOR_RESET);
-                }
-                else if(bridge->color == 'b')
-                {
-                    printf(ANSI_COLOR_BLUE "B " ANSI_COLOR_RESET);
-                }
-            }
-            else
-            {
-                printf("_ ");
-            }
+        mysem_down(&(ptr->sem));    // make semaphore down //
+        pthread_yield();
+    
+        if((*ptr).status == -1)    // status is terminate //
+        { 
+            break;
         }
-        printf(ANSI_COLOR_BLUE " b:%d" ANSI_COLOR_RESET, bridge->b_waiting);
 
-        fflush(stdout);
+        #ifdef DEBUG
+        printf("Thread %d processing number %d\n", (*ptr).pos, (*ptr).number);
+        #endif
+        (*ptr).result[0][(*ptr).size - 1] = (*ptr).number;
+        (*ptr).result[1][(*ptr).size - 1] = find_prime((*ptr).number);
+        (*ptr).size++;
+        (*ptr).result[0] = (int *) realloc((*ptr).result[0], sizeof(int) * (*ptr).size);
+        (*ptr).result[1] = (int *) realloc((*ptr).result[1], sizeof(int) * (*ptr).size);
+
+        mysem_down(&mtx);
+        done_value = done;
+        result = mysem_up(&mtx);
+        if(result == 0)
+            printf("Semaphore mtx lost up\n");
+        if(done_value == 1)
+        {
+            result = mysem_up(&(ptr->finish));
+            if(result == 0)
+                printf("semaphore finish lost up\n");
+        }
+        // result = mysem_up(&mtx);
+        // if(result == 0)
+        //     printf("Semaphore mtx lost up\n");
+
+        (*ptr).status = 1;    // available //  
+                
+
     }
+    (*ptr).status = -2; 
+    printf("Thread %d terminating...\n", (*ptr).pos);
+    result = mysem_up(&(ptr->term));
+    if(result == 0)
+        printf("semaphore finish lost up\n");
     pthread_exit(NULL);
-
 }
-#endif
 
 int main(int argc, char *argv[])
 {
-    FILE *file;
-    char line[5];
-    char *filename;
-    pthread_t ids[100];
-    int i = 0, j;
+    int num_threads = 0;
+    int i = 0, j = 0;
+    int number = -1;
+    int counter = 0;
+    int sum = 0;
+    done = 0;
+    int result = -2;
 
-    if(argc != 3)
+    FILE *output_file;
+
+    if(argv[1] != NULL)
+        num_threads = atoi(argv[1]);
+    else
     {
-        // printf("ERROR: Incorrect arguments\n");
+        printf("No argument\n");
         return -1;
     }
 
-    bridge = (bridge_t*) calloc(1, sizeof(bridge_t));
-    bridge->b_waiting = 0;
-    bridge->blue_passed = 0;    
-    bridge->red_passed = 0;
-    bridge->max_cars = 0;
-    bridge->r_waiting = 0;
-    bridge->color = '\0';
-    bridge->max_cars = atoi(argv[2]);   // first filename and then max_number //
-    filename = argv[1];
+    pthread_t id[num_threads];      // ids of threads //
 
-    exit_val = 0;
+    workers = (struct worker *) calloc(num_threads, sizeof(struct worker));
 
-
-    file = fopen(filename, "r");
-    if(filename == NULL)
-    {
-        // printf("ERROR: No input file\n");
-    }
-    mysem_create(&b_sem);
-    mysem_create(&r_sem);
     mysem_create(&mtx);
-    mysem_create(&print_sem);
-
     mysem_init(&mtx, 1);
-    mysem_init(&r_sem, 0);
-    mysem_init(&b_sem, 0);
-    mysem_init(&print_sem, 1);
 
-    #ifndef DEBUG
-    pthread_create(&ids[i], NULL, print_result, NULL);
-    i++;
-    #endif
-
-    int red = 0, blue= 0;
-
-    while (fgets(line, sizeof(line) ,file) != NULL)
+    for(i = 0; i < num_threads; i++)
     {
-        if(line[0] == 'r')
+        workers[i].number = -1;
+        workers[i].status = 1;
+        workers[i].result[0] = (int*) calloc(1, sizeof(int));   // number //
+        workers[i].result[1] = (int*) calloc(1, sizeof(int));   // result //
+        workers[i].result[1][0] = 1;
+        workers[i].result[0][0] = -1;
+        workers[i].size = 1;
+        workers[i].pos = i;
+        // workers[i].done = 0;
+
+        mysem_create(&(workers[i].sem));
+        mysem_init(&(workers[i].sem), 0);   // init the semaphores //
+
+        mysem_create(&(workers[i].finish));
+        mysem_init(&(workers[i].finish), 0);   // init the semaphores //
+
+        mysem_create(&(workers[i].term));
+        mysem_init(&(workers[i].term), 0);
+    }
+
+    for(i = 0; i < num_threads; i++)
+    {
+        pthread_create(&id[i], NULL, worker_thread, (void*) (workers + i));
+        printf("Thread %d created\n", i);
+    }
+
+    do
+    {
+        scanf("%d", &number);
+        if(number <= 0)
         {
-            red++;
-            sleep(atoi(line+1));
-            pthread_create(&ids[i], NULL, red_car, (void *) (&red));
-
-            #ifdef DEBUG
-            mysem_down(&print_sem);
-            printf(ANSI_COLOR_RED "Red (%d) created with sleep %d\n" ANSI_COLOR_RESET, red, atoi(line+1));
-            mysem_up(&print_sem);
-            #endif
-
-            i++ ;
+            printf("No more input\n");
+            break;
         }
-        else if(line[0] == 'b')
+        while(1)
         {
-            blue++;
-            sleep(atoi(line+1));
-            pthread_create(&ids[i], NULL, blue_car, (void *) (&blue));
+            if(j == num_threads)
+                j = 0;
+
+            if(workers[j].status == 1)  // thread available //
+            {
+                break;
+            }
+            j++;
+        }
+
+        workers[j].number = number;     // give work //
+        workers[j].status = 0;         // make thread busy //
+        result = mysem_up(&(workers[j].sem));
+        if(result == 0)
+            printf("Semaphore sem lost up\n");
+
+    }
+    while(number > 0);
+
+    mysem_down(&mtx);
+    done = 1;
+    result = mysem_up(&mtx);
+    if(result == 0)
+        printf("Semaphore mtx lost up");
+
+
+    for(i = 0; i < num_threads; i++)
+    {
+        if(workers[i].status != 1)  // is available //
+        {
+            // mysem_down(&(workers[i].sem));
+            mysem_down(&(workers[i].finish));
+            pthread_yield();
+        }
+        workers[i].status = -1;
+    }
+    printf("finish check of available\n");
+
+    for(i = 0; i < num_threads; i++)
+    {
+        //workers[i].status = -1;     // inform them to terminate //
+        result = mysem_up(&(workers[i].sem));
+        if(result == 0)
+            printf("Semaphore sem lost up\n");
+    }
+
+    counter = 0;        // reset counter //
+    printf("Main is waiting for threads to terminate!\n");
+
+    for(i = 0; i < num_threads; i++)
+    {
+        if(workers[i].status == -2)
+        {
+            mysem_down(&(workers[i].term));
+            pthread_yield();
+        }
+            // mysem_down(&workers[i].finish);
             
-            #ifdef DEBUG
-            mysem_down(&print_sem);
-            printf(ANSI_COLOR_BLUE "Blue (%d) created with sleep %d\n" ANSI_COLOR_RESET, blue, atoi(line+1));
-            mysem_up(&print_sem);
-            #endif
-            i++;
+    }
+
+    output_file = fopen("out.txt", "w");
+
+    for(i = 0; i < num_threads; i++)
+    {
+        for(j = 0; j < workers[i].size - 1; j++)
+        {
+            if( workers[i].result[1][j] == 1)
+            {
+                sum++;
+                fprintf(output_file, "The number %d is NOT PRIME!\n", workers[i].result[0][j]);
+            }
+            else if( workers[i].result[1][j] == 0)
+            {
+                sum++;
+                fprintf(output_file, "The number %d is PRIME!\n", workers[i].result[0][j]);
+            }
         }
     }
 
-    exit_val = 1;
-    for(j = 0; j < i; j++)
-    {
-        pthread_join(ids[j], NULL);
-    }
+    printf("Total numbers that program calulated are %d\n\n", sum); 
+
+    printf("Main exiting...\n");
+
+    fclose(output_file); 
+
+    return 0;       // EXIT //
 }
+

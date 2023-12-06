@@ -3,7 +3,8 @@
     "hw1_1_lib.h": "c",
     "stdlib.h": "c",
     "stdio.h": "c",
-    "limits": "c"
+    "limits": "c",
+    "mysem.h": "c"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
