@@ -4,10 +4,6 @@
   Red tries to be polite
   blockedddd
   */
-
-
-
-
 void *red_car(void *varg)
 {
     // bridge_t bridge;
