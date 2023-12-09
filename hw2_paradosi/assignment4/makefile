@@ -1,9 +1,9 @@
 CXX = gcc
-CXXFLAGS = -Wall -fsanitize=address -g -DDEBUG
-LDFLAGS = -fsanitize=address -lpthread 
+CXXFLAGS = -Wall -fsanitize=address -g
+LDFLAGS = -fsanitize=address -lpthread
 SRC_FILES = $(filter-out maria.c, $(wildcard *.c)) $(filter-out ../assignment1/test.c, $(wildcard ../assignment1/*.c))
 OBJ_FILES = $(SRC_FILES:.c=.o)
-TARGET = hw2_3
+TARGET = hw2_4
 
 all: $(TARGET)
 

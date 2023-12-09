@@ -101,3 +101,166 @@ worker_thread():
     thread status = terminating
     mysem_up(thread terminate_sem)
     pthread_exit
+
+// ###### hw2_3 ###### //
+
+main():
+    initialize struct bridge
+    open file given as argument
+    create all semaphores
+    initialize semaphores b_sem and r_sem to 0
+    initialize semaphores mtx and print_sem to 1
+    
+    while(there is line to read on file)
+        if(red_car)
+            add 1 to red
+            sleep(given time)
+            create thread(red_car)
+        else if (blue_car)
+            add 1 to Blue
+            sleep(given time)
+            create thread(blue_car)
+
+    for j : thread_num
+        pthread_join()
+    destroy all semaphores 
+            
+        
+red_car()
+    red cars waiting++
+    while(1)
+        if (blue_cars_waiting > 0 && brigde == empty && blue_cars_passed < max_cars_brigde * 2)
+            mysem_down(red sem) 
+        else if (cars_on_brigde == blue) 
+            red_down++
+            mysem_down(red sem)
+            red_down--
+        else if (cars_on_brigde < max_cars_on_brigde)
+            if (blue_cars_waiting > 0)
+                if(red_cars_passed < 2 * max_cars_on_brigde) //car can pass
+                    break
+                else
+                    red_down++
+                    mysem_down(red sem)
+                    red_down--
+            else  //car can pass
+                break
+        else
+            red_down++
+            mysem_down(red sem)
+            red_down--
+
+    red_cars_waiting--
+    brigde = red
+    cars_on_bridge++
+    blue_cars_passed = 0
+    red_cars_passed++
+    
+    if (blue_cars_waiting > 0 && cars_on_bridge > max_cars_bridge) 
+        mysem_up(red sem)
+    sleep
+    cars_on_bridge--;
+    if (bridge == empty) 
+        color = blank
+    if (b_down > 0)
+        mysem_up(blue sem)
+    if (r_down > 0) 
+        mysem_up(red sem)
+    pthread_exit()
+
+
+blue_car()
+    blue cars waiting++
+    while(1)
+        if (cars_on_brigde == red) 
+            b_down++
+            mysem_down(blue sem)
+            b_down--
+        else if (cars_on_brigde < max_cars_on_brigde)
+            if (red_cars_waiting > 0)
+                if(blue_cars_passed < 2 * max_cars_on_brigde) //car can pass
+                    break
+                else
+                    b_down++
+                    mysem_down(blue sem)
+                    b_down--
+            else  //car can pass
+                break
+        else
+            b_down++
+            mysem_down(blue sem)
+            b_down--
+
+    blue_cars_waiting--
+    brigde = blue
+    cars_on_bridge++
+    red_cars_passed = 0
+    blue_cars_passed++
+
+    if (red_cars_waiting > 0 && cars_on_bridge > max_cars_bridge) 
+        mysem_up(blue sem)
+    sleep
+    cars_on_bridge--;
+    if (bridge == empty) 
+        color = blank
+    if (b_down > 0)
+        mysem_up(blue sem)
+    if (r_down > 0) 
+        mysem_up(red sem)
+    pthread_exit()
+
+
+main:
+    initialize struct train
+    open file given as argument
+    create all semaphores
+    initialize semaphore mtx as 1
+    initialize all other semaphores to 0
+    pthread_create(train)
+    while(file input) 
+        if (input < 0)
+            sleep(abs(input))
+            flag = 1; // notify that it's the last passenger
+            pthread_create(passenger)
+        else
+            sleep(abs(input))
+            pthread_create(passenger)
+    pthread_join(train);
+    destroy all semaphores
+
+train_function:
+    while(1):
+        mysem_down(train_sem)
+        sleep() //time of ride
+        passengers_on_train = 0;
+        if (passengers_waiting > max_passengers)
+            passengers_waiting = passengers_waiting - max_passengers
+        else
+            passengers_waiting = 0
+        waiting_up_needed = passengers_waiting;
+        for (i : max_passengers)
+            mysem_up(pass_ride)
+            pthread_join(passenger)
+            if (waiting_up_needed < max_passengers && waiting_up_needed > 0) 
+                waiting_up_needed--
+        if (exit)
+            break
+    pthread_exit()
+
+passenger_function:
+    passengers_waiting++
+    flag = arg
+    inform_exit = 0;
+    while(1):
+        if (passengers_on_train == max_passengers)
+            mysem_down(pass_wait)
+        else 
+            passengers_on_train++
+            if(max_passengers == passengers_on_train)
+                mysem_up(train_sem)
+    mysem_down(pass_ride)        
+    if (waiting_up_needed > 0)
+        mysem_up(pass_wait)
+    if(inform_exit)
+        train_exit = 1;
+    pthread_exit()
