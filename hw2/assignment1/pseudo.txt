@@ -1,0 +1,103 @@
+mysem_init():
+    if (init_value != 0 && init_value != 1)​
+        return ERROR
+    semctl(s->sem_id, 0, GETVAL)​
+    if s->sem_id already initialized​
+        return ERROR
+    semctl(s->sem_id, 0, SETVAL, n)
+    if operation failed
+        return ERROR
+
+    return SUCCESS
+
+mysem_down():
+    if semaphore is not initialized
+        return ERROR
+    initialize sembuf operator for substraction
+    semop(s->sem_id, &operator, 1);
+    if operation failed
+        return ERROR
+    
+    return SUCCESS
+
+mysem_up():
+    if (semaphore is not initialized)
+        return ERROR
+    if (semaphore value is 1) 
+        return ERROR
+    initialize sembuf operator for addition
+    semop(s->sem_id, &operator, 1);
+    if (operation failed)
+        return ERROR
+        
+    return SUCCESS
+
+mysem_create():
+    semget(IPC_PRIVATE, 1, 0666);
+    if(semget failed)
+        reutrn ERROR
+    add id on semaphore struct
+    semctl(s->sem_id, 0, SETVAL, 2);
+
+    return SUCCESS
+
+mysem_destroy():
+    if (semaphore is not initialized)
+        return ERROR
+    semctl(s->sem_id, 0, IPC_RMID);
+    if (semaphore did not get removed)
+        return ERROR
+    return SUCCESS
+
+main():
+    read from stdout number of threads
+    create semaphore mtx
+    init semaphore mtx to 1
+    for i : number of threads
+        initialize struct of worker i
+        create and initialize semaphores to 0
+    for i : number_of_threads
+        pthread_create()
+    
+    while(number greater than 0)
+        read numbers from stdin
+        give number to first available thread
+        change its status to busy
+        mysem_up(currentWorker.sem) // wake up this worker //
+
+    for i : number_of_threads
+        if(currentWorker is not available)
+            down(currentWorker.finish) // main waits for worker to be avl //
+            pthread_yield();
+        info thread to terminate
+    
+    for i : number_of_threads
+        up(currentWorker.sem) // wake up thread to terminate //
+    
+    for i : number_of_threads
+        if(currentWorker has not terminate)
+            down(currentWorker.term)
+            pthread_yield()
+    
+    write all numbers on a file out.txt
+    print (total numbers that calculated)
+    destroy all semaphores
+    
+    return SUCCESS
+
+worker_thread():
+    while(1)
+        mysem_down(thread sem)
+        if (status is terminate)
+            break;
+        find prime
+        append result array
+        mysem_down(mtx)
+        done_value = done
+        mysem_up(mtx)
+        if (done_value == 1)
+            mysem_up(thread finish_sem)
+        thread status = available
+    thread status = terminating
+    mysem_up(thread terminate_sem)
+    pthread_exit

@@ -4,9 +4,9 @@
 #include <sys/sem.h>
 #include <errno.h>
 
-typedef struct {
+typedef struct 
+{
     int sem_id;
-    int mtx_id;
 } mysem_t;
 
 int mysem_create(mysem_t *s);

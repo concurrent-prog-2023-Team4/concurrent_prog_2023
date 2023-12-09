@@ -3,16 +3,13 @@
 int mysem_create(mysem_t *s) 
 {
     int id;
-    int mtx;
     id = semget(IPC_PRIVATE, 1, 0666);
-    mtx = semget(IPC_PRIVATE, 1, 0666);
-    if (id == -1 || mtx == -1) 
+    if (id == -1) 
     {
         perror("semget");
         return -1;
     }
     s->sem_id = id;
-    s->sem_id = mtx;
     semctl(s->sem_id, 0, SETVAL, 2);
     return 0;
 }
@@ -34,11 +31,7 @@ int mysem_init(mysem_t *s, int n)
         perror("semctl");
         return -2;
     }
-    if (semctl(s->sem_id, 0, SETVAL, n) == -1) 
-    {
-        perror("semctl");
-        return -3;
-    }
+    
     return 1;
 }
 
@@ -111,13 +104,6 @@ int mysem_destroy(mysem_t *s)
     if(result == -1)
     {
         perror("Remove of SEMAPHORE failed!\n");
-        return -1;
-    }
-
-    result = semctl(s->mtx_id, 0, IPC_RMID);
-    if(result == -1)
-    {
-        perror("Remove of MUTEX failed!\n");
         return -1;
     }
 

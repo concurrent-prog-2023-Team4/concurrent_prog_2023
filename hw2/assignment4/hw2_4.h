@@ -15,6 +15,7 @@ struct train
     int on_train;
     pthread_t *passengers;
     int exit;
+    int waiting_up_needed;
 };
 typedef struct train train_t;
 

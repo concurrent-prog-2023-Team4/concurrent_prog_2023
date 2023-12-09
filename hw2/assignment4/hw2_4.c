@@ -10,7 +10,8 @@ void *train_function()
     int i;
     int result;
     while(1)
-    {
+    {   
+        
         mysem_down(&train_sem);
         
         mysem_down(&mtx);
@@ -28,8 +29,20 @@ void *train_function()
         else
             train->passengers_waiting = 0;
 
+        // if(train->passengers_waiting < train->max_passengers)
+        // {
+        //     flag = 1;
+        // }
+        // else
+        // {
+        //     flag = 0;
+        // }
+        //waiting = train->passengers_waiting;
+        train->waiting_up_needed = train->passengers_waiting;
+
         for(i = 0; i < train->max_passengers; i++)  // wait for passengers to exit //
         {   
+            // train->passengers_waiting--;
             result = mysem_up(&pass_ride);
             {
                 if(result == 0)
@@ -37,12 +50,13 @@ void *train_function()
                     printf("pass_ride lost up\n");
                 }
             }
+            // mysem_up(&mtx);
             pthread_join(train->passengers[i], NULL);
             printf("Thread with id %ld exited... and waiting is %d\n", train->passengers[i], train->passengers_waiting);
+            if(train->waiting_up_needed < train->max_passengers && train->waiting_up_needed > 0)
+                train->waiting_up_needed--;
         }
-        // train->on_train = 0;
-        // mysem_down(&mtx);
-        // mysem_up(&mtx);
+
         if(train->exit == 1)
         {
             break;
@@ -82,7 +96,7 @@ void *passengers_function(void *varg)
             // den mpainei //
             
             // train->passengers_waiting++;
-            printf(ANSI_COLOR_BLUE "Passenger waiting and waiting is %d\n" ANSI_COLOR_RESET , train->passengers_waiting);
+            printf(ANSI_COLOR_BLUE "Passenger with id %ld waiting and waiting is %d\n" ANSI_COLOR_RESET , pthread_self(), train->passengers_waiting);
             mysem_up(&mtx);
             mysem_down(&pass_wait);
             // if(train->passengers_waiting > 0)           // passenger wakes and checks if others are waiting
@@ -118,13 +132,14 @@ void *passengers_function(void *varg)
         }
     }
     mysem_down(&pass_ride); // down because passenger gets on train //
-
+    
     // mysem_down(&mtx);
     // train->on_train--;
-    if(train->passengers_waiting > 0)
+    if(train->waiting_up_needed > 0)
     {
         // train->passengers_waiting--;
         result = mysem_up(&pass_wait);
+        printf("pass_wait UP\n");
         if(result == 0)
         {
             printf("pass_waits lost up\n");
@@ -135,7 +150,7 @@ void *passengers_function(void *varg)
     {
         train->exit = 1;
     }
-    //mysem_up(&mtx);
+    // mysem_up(&mtx);
 
     pthread_exit(NULL);
 }
@@ -148,6 +163,7 @@ int main(int argc, char *argv[])
     pthread_t ids[100];
     int i = 0;
     int flag = 0;
+    int result;
 
     if(argc != 3)
     {
@@ -160,6 +176,7 @@ int main(int argc, char *argv[])
     train->passengers_waiting = 0;
     train->max_passengers = atoi(argv[2]);   // first filename and then max_number //
     train->exit = 0;
+    train->waiting_up_needed = 0;
 
     filename = argv[1];
 
@@ -199,11 +216,28 @@ int main(int argc, char *argv[])
             pthread_create(&ids[i], NULL, passengers_function, (void*) (&flag));
             printf("Thread with id %ld created!\n", ids[i]);  
         }
-        sleep(atoi(line));
-        pthread_create(&ids[i], NULL, passengers_function, NULL);
-        printf("Thread with id %ld created!\n", ids[i]);
+        else
+        {
+            sleep(atoi(line));
+            pthread_create(&ids[i], NULL, passengers_function, NULL);
+            printf("Thread with id %ld created!\n", ids[i]);
+            flag = 0;
+        }
     }
 
     pthread_join(ids[0], NULL);
+    
+    result = mysem_destroy(&pass_ride);
+    if(result == 1)
+        printf("Semaphore pass_ride destroyed succesfully!\n");
+    result = mysem_destroy(&pass_wait);
+    if(result == 1)
+        printf("Semaphore pass_ride destroyed succesfully!\n");
+    result = mysem_destroy(&mtx);
+    if(result == 1)
+        printf("Semaphore pass_ride destroyed succesfully!\n");
+    result = mysem_destroy(&train_sem);
+    if(result == 1)
+        printf("Semaphore pass_ride destroyed succesfully!\n");
 
 }

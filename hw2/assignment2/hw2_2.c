@@ -1,45 +1,14 @@
 // HW1 exercise 2
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <pthread.h>
-#include "../assignment1/mysem.h"
-
-// #define DEBUG
-
-struct worker   // a struct of info for each thread //
-{
-    int number;     // number to proccess //
-    int status;     // can be -2, -1, 0, 1, it communicates with main //
-    int size;       // size of numbers that each thread has proccessed //
-    int *result[2];     // 2d array that keeps the value of each number and if it is prime or not //
-    int pos;
-    mysem_t sem;
-    mysem_t finish;
-    mysem_t term;
-    // int done;
-};
-
-mysem_t mtx;
-
-int done;
-
-struct worker *workers;
+#include "../assignment2/hw2_2.h"
 
 int find_prime(int number)
 {
     int i, flag = 0;
-
-    // 0 and 1 are not prime numbers
-    // change flag to 1 for non-prime number
     if (number == 0 || number == 1)
         flag = 1;
 
     for (i = 2; i <= number / 2; ++i) 
     {
-
-        // if n is divisible by i, then n is not prime
-        // change flag to 1 for non-prime number
         if (number % i == 0) 
         {
             flag = 1;
@@ -86,9 +55,6 @@ void *worker_thread(void *varg)
             if(result == 0)
                 printf("semaphore finish lost up\n");
         }
-        // result = mysem_up(&mtx);
-        // if(result == 0)
-        //     printf("Semaphore mtx lost up\n");
 
         (*ptr).status = 1;    // available //  
                 
@@ -139,7 +105,6 @@ int main(int argc, char *argv[])
         workers[i].result[0][0] = -1;
         workers[i].size = 1;
         workers[i].pos = i;
-        // workers[i].done = 0;
 
         mysem_create(&(workers[i].sem));
         mysem_init(&(workers[i].sem), 0);   // init the semaphores //
@@ -192,12 +157,10 @@ int main(int argc, char *argv[])
     if(result == 0)
         printf("Semaphore mtx lost up");
 
-
     for(i = 0; i < num_threads; i++)
     {
-        if(workers[i].status != 1)  // is available //
+        if(workers[i].status != 1)  // is not available //
         {
-            // mysem_down(&(workers[i].sem));
             mysem_down(&(workers[i].finish));
             pthread_yield();
         }
@@ -207,7 +170,6 @@ int main(int argc, char *argv[])
 
     for(i = 0; i < num_threads; i++)
     {
-        //workers[i].status = -1;     // inform them to terminate //
         result = mysem_up(&(workers[i].sem));
         if(result == 0)
             printf("Semaphore sem lost up\n");
@@ -222,9 +184,7 @@ int main(int argc, char *argv[])
         {
             mysem_down(&(workers[i].term));
             pthread_yield();
-        }
-            // mysem_down(&workers[i].finish);
-            
+        }            
     }
 
     output_file = fopen("out.txt", "w");
@@ -246,7 +206,21 @@ int main(int argc, char *argv[])
         }
     }
 
-    printf("Total numbers that program calulated are %d\n\n", sum); 
+    printf("Total numbers that program calulated are %d\n\n", sum);
+     
+    if(mysem_destroy(&mtx))
+        printf("Semaphore mtx destroyed succesfully!\n");
+    for (i = 0; i < num_threads; i++) 
+    {
+        if (mysem_destroy(&(workers[i].sem)))
+            printf("Semaphore workers[%d].sem destroyed succesfully!\n", i);
+        if (mysem_destroy(&(workers[i].finish)))
+            printf("Semaphore workers[%d].finish destroyed succesfully!\n", i);
+        if (mysem_destroy(&(workers[i].term)))
+            printf("Semaphore workers[%d].term destroyed succesfully!\n", i);
+    }
+   
+
 
     printf("Main exiting...\n");
 
