@@ -14,7 +14,7 @@ int mysem_create(mysem_t *s)
     return 0;
 }
 
-int mysem_init(mysem_t *s, int n) 
+int mysem_init(mysem_t *s, int n)
 {
     if (n != 0 && n != 1)
     {

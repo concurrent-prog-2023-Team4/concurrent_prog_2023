@@ -218,8 +218,6 @@ int main(int argc, char *argv[])
             printf("Semaphore workers[%d].term destroyed succesfully!\n", i);
     }
    
-
-
     printf("Main exiting...\n");
 
     fclose(output_file); 

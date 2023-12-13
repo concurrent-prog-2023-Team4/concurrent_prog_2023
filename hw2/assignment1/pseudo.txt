@@ -156,7 +156,7 @@ red_car()
     blue_cars_passed = 0
     red_cars_passed++
     
-    if (blue_cars_waiting > 0 && cars_on_bridge > max_cars_bridge) 
+    if (r_down > 0 && cars_on_bridge < max_cars_bridge) 
         mysem_up(red sem)
     sleep
     cars_on_bridge--;
@@ -197,7 +197,7 @@ blue_car()
     red_cars_passed = 0
     blue_cars_passed++
 
-    if (red_cars_waiting > 0 && cars_on_bridge > max_cars_bridge) 
+    if (b_down > 0 && cars_on_bridge < max_cars_bridge) 
         mysem_up(blue sem)
     sleep
     cars_on_bridge--;
