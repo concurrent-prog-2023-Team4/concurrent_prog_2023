@@ -3,10 +3,15 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <errno.h>
+#include <pthread.h>
+#include <stdlib.h>
 
 typedef struct 
 {
     int sem_id;
+    int value;
+    pthread_mutex_t mutex, safe_read;
+    pthread_cond_t cond;
 } mysem_t;
 
 int mysem_create(mysem_t *s);
