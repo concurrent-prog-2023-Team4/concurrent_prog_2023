@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
-// #include "../assignment1/mysem.h"
 #include "../assignment1/mysem.h"
-#define DEBUG
 struct worker   // a struct of info for each thread //
 {
     int number; // number to proccess //
@@ -15,18 +13,12 @@ struct worker   // a struct of info for each thread //
     mysem_t sem;
     mysem_t finish;
     mysem_t term;
-    mysem_t start;
 };
 
-mysem_t sem_main;
 mysem_t mtx;
 struct worker *workers;
 
 int done;
-
-int blocked_main;
-int curr_thread;
-
 
 int find_prime(int number);
 void *worker_thread(void *varg);

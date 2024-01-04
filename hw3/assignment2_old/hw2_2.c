@@ -25,11 +25,10 @@ void *worker_thread(void *varg)
     struct worker *ptr = (struct worker *)varg;
     int done_value;
 
-    mysem_up(&(ptr->start));    // notify main that thread created //
     while(1)
     {
         mysem_down(&(ptr->sem));    // make semaphore down //
-        // pthread_yield();
+        pthread_yield();
     
         if((*ptr).status == -1)    // status is terminate //
         { 
@@ -57,17 +56,9 @@ void *worker_thread(void *varg)
                 printf("semaphore finish lost up\n");
         }
 
-        mysem_down(&mtx);
-        if(blocked_main == 1)
-        {
-            curr_thread = ptr->pos;
-            blocked_main = 0;
-            // mysem_up(&mtx);
-            mysem_up(&sem_main);
-        }
-
         (*ptr).status = 1;    // available //  
-        mysem_up(&mtx);
+                
+
     }
     (*ptr).status = -2; 
     printf("Thread %d terminating...\n", (*ptr).pos);
@@ -103,12 +94,6 @@ int main(int argc, char *argv[])
     mysem_create(&mtx);
     mysem_init(&mtx, 1);
 
-    mysem_create(&sem_main);
-    mysem_init(&sem_main, 0);
-
-    blocked_main = 0;
-    curr_thread = -1;
-
     for(i = 0; i < num_threads; i++)
     {
         workers[i].number = -1;
@@ -128,18 +113,14 @@ int main(int argc, char *argv[])
 
         mysem_create(&(workers[i].term));
         mysem_init(&(workers[i].term), 0);
-        
-        mysem_create(&(workers[i].start));
-        mysem_init(&(workers[i].start), 0);
     }
 
     for(i = 0; i < num_threads; i++)
     {
         pthread_create(&id[i], NULL, worker_thread, (void*) (workers + i));
-        mysem_down(&(workers[i].start));
         printf("Thread %d created\n", i);
     }
-    // sleep(1);
+
     do
     {
         scanf("%d", &number);
@@ -148,53 +129,28 @@ int main(int argc, char *argv[])
             printf("No more input\n");
             break;
         }
-        // while(1)
-        // {
-        //     if(j == num_threads)
-        //         j = 0;
-
-        //     if(workers[j].status == 1)  // thread available //
-        //     {
-        //         break;
-        //     }
-        //     j++;
-        // }
-        printf("mpika\n");
-
-        for(i = 0; i < num_threads; i++)
+        while(1)
         {
-            if(workers[i].status == 1)
+            if(j == num_threads)
+                j = 0;
+
+            if(workers[j].status == 1)  // thread available //
             {
-                curr_thread = i;
-                printf("find available\n");
                 break;
             }
+            j++;
         }
-        if(i == num_threads)    // all are busy //
-        {
-            printf("before mtx\n");
-            mysem_down(&mtx);
-            blocked_main = 1;
-            mysem_up(&mtx);
-            printf("Main is going down for real\n");
-            mysem_down(&sem_main);
-        }
-        
-        workers[curr_thread].number = number;     // give work //
-        workers[curr_thread].status = 0;         // make thread busy //
-        result = mysem_up(&(workers[curr_thread].sem));
+
+        workers[j].number = number;     // give work //
+        workers[j].status = 0;         // make thread busy //
+        result = mysem_up(&(workers[j].sem));
         if(result == 0)
             printf("Semaphore sem lost up\n");
 
     }
     while(number > 0);
 
-    #ifdef DEBUG
-    // printf("before mutex and value is %d\n", semctl(mtx.sem_id, 0, GETVAL));
-    #endif 
-
     mysem_down(&mtx);
-    printf("after mutex\n");
     done = 1;
     result = mysem_up(&mtx);
     if(result == 0)
@@ -202,16 +158,10 @@ int main(int argc, char *argv[])
 
     for(i = 0; i < num_threads; i++)
     {
-        mysem_down(&mtx);
         if(workers[i].status != 1)  // is not available //
         {
-            mysem_up(&mtx);
             mysem_down(&(workers[i].finish));
-            // pthread_yield();
-        }
-        else
-        {
-            mysem_up(&mtx);
+            pthread_yield();
         }
         workers[i].status = -1;
     }
@@ -231,7 +181,7 @@ int main(int argc, char *argv[])
         if(workers[i].status == -2)
         {
             mysem_down(&(workers[i].term));
-            // pthread_yield();
+            pthread_yield();
         }            
     }
 
@@ -266,11 +216,10 @@ int main(int argc, char *argv[])
             printf("Semaphore workers[%d].finish destroyed succesfully!\n", i);
         if (mysem_destroy(&(workers[i].term)))
             printf("Semaphore workers[%d].term destroyed succesfully!\n", i);
-        if (mysem_destroy(&(workers[i].start)))
-            printf("Semaphore workers[%d].start destroyed succesfully!\n", i);
     }
    
-    mysem_destroy(&sem_main);
+
+
     printf("Main exiting...\n");
 
     fclose(output_file); 
