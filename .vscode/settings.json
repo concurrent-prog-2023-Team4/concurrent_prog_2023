@@ -7,7 +7,8 @@
     "mysem.h": "c",
     "type_traits": "c",
     "hw2_2.h": "c",
-    "*.txt": "c"
+    "*.txt": "c",
+    "monitors.h": "c"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
