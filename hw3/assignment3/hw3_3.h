@@ -22,8 +22,6 @@ struct bridge
     int on_bridge;
     int red_passed;
     int blue_passed;
-    int b_down;
-    int r_down;
     char color;
 };
 typedef struct bridge bridge_t;

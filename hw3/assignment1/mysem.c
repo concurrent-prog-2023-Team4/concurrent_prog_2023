@@ -13,7 +13,6 @@ int mysem_create(mysem_t *s)
     // s->mutex = PTHREAD_MUTEX_INITIALIZER;
     // s->cond = PTHREAD_COND_INITIALIZER;
     pthread_mutex_init(&(s->mutex), NULL);
-    //pthread_mutex_init(&(s->safe_read), NULL);
     pthread_cond_init(&(s->cond), NULL);
     s->value = 2;
 
@@ -39,20 +38,15 @@ int mysem_init(mysem_t *s, int n)
 
 int mysem_down(mysem_t *s) 
 {
-    
-
-    // pthread_mutex_lock(&(s->safe_read));
     pthread_mutex_lock(&(s->mutex));
     if(s->value <= 0)
     {
         s->value--;
-        // pthread_mutex_unlock(&(s->safe_read));
         pthread_cond_wait(&(s->cond), &(s->mutex));
     }
     else if(s->value == 1)
     {
         s->value--;
-        // pthread_mutex_unlock(&(s->safe_read));
     }
     pthread_mutex_unlock(&(s->mutex));
     
@@ -64,20 +58,17 @@ int mysem_up(mysem_t *s)
 
     int result;
     
-    // pthread_mutex_lock(&(s->safe_read));
     pthread_mutex_lock(&(s->mutex));
     result = s->value;
     if (result == 2) 
     {
         perror("Semaphore not initialized.\n");
-        //pthread_mutex_unlock(&(s->safe_read));
         pthread_mutex_unlock(&(s->mutex));
         return -1;
     }
     else if (result == 1)
     {
         perror("Value already on 1.\n");
-        //pthread_mutex_unlock(&(s->safe_read));
         pthread_mutex_unlock(&(s->mutex));
         return 0;
     }
@@ -92,18 +83,12 @@ int mysem_up(mysem_t *s)
         pthread_mutex_unlock(&(s->mutex));
         s->value++;
     }
-   // pthread_mutex_unlock(&(s->safe_read));
-
     return 1;
 }
 
 int mysem_destroy(mysem_t *s) 
 {
-    int result;
-
-    result = s->value;
-
-    if (result == 2) 
+    if (s->value == 2) 
     {
         perror("Semaphore not initialized.\n");
         return -1;
@@ -114,3 +99,5 @@ int mysem_destroy(mysem_t *s)
 
     return 1;
 }
+
+

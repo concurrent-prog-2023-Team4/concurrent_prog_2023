@@ -21,13 +21,11 @@ void *red_car(void *varg)
 
         if(bridge->color == 'b')
         {
-            bridge->r_down++;
             #ifdef DEBUG
             printf(ANSI_COLOR_RED "Red (%d) is waiting in bridge cause of color and b:%d and r:%d and on bridge %d\n" ANSI_COLOR_RESET, red_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge);
             #endif
             wait(bridge_monitor);
 
-            bridge->r_down--;
             exitMonitor(bridge_monitor);
         }
         else if(bridge->on_bridge < bridge->max_cars)
@@ -41,13 +39,12 @@ void *red_car(void *varg)
                 else
                 {
                     // down //
-                    bridge->r_down++;
                     #ifdef DEBUG
                     printf(ANSI_COLOR_RED "Red (%d) is waiting in bridge cause of blue waiting to pass and and b:%d and r:%d and on bridge %d\n" ANSI_COLOR_RESET, red_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge);
                     #endif
                     wait(bridge_monitor);
 
-                    bridge->r_down--;
+    
                     exitMonitor(bridge_monitor);
                 }
             }
@@ -60,13 +57,11 @@ void *red_car(void *varg)
         else
         {
             // down //
-            bridge->r_down++;
             #ifdef DEBUG
             printf(ANSI_COLOR_RED "Red (%d) is waiting in bridge cause of max cars on it and and b:%d and r:%d and on bridge %d\n" ANSI_COLOR_RESET, red_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge);
             #endif
 
             wait(bridge_monitor);
-            bridge->r_down--;
             exitMonitor(bridge_monitor);
         }
     }
@@ -121,20 +116,17 @@ void *blue_car(void *varg)
 
     while (1)
     {
-        
         enterMonitor(bridge_monitor);
         #ifdef DEBUG
         printf(ANSI_COLOR_BLUE "Blue (%d) sees color: %c\n" ANSI_COLOR_RESET, blue_num, bridge->color);
         #endif
         if(bridge->color == 'r')
         {
-            bridge->b_down++;
+            
             #ifdef DEBUG
             printf(ANSI_COLOR_BLUE "Blue (%d) is waiting in bridge cause of color and b:%d and r:%d and on bridge %d\n" ANSI_COLOR_RESET, blue_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge);
             #endif
             wait(bridge_monitor);
-
-            bridge->b_down--;
             
             exitMonitor(bridge_monitor);
         }
@@ -148,13 +140,11 @@ void *blue_car(void *varg)
                 }
                 else
                 {
-                    bridge->b_down++;
+                    
                     #ifdef DEBUG
                     printf(ANSI_COLOR_BLUE "Blue (%d) is waiting in bridge cause of red waiting to pass and b:%d and r:%d and on bridge %d\n" ANSI_COLOR_RESET, blue_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge);
                     #endif
                     wait(bridge_monitor);
-
-                    bridge->b_down--;
                     
                     exitMonitor(bridge_monitor);
                 }
@@ -167,12 +157,11 @@ void *blue_car(void *varg)
         }
         else
         {
-            bridge->b_down++;
+            
             #ifdef DEBUG
             printf(ANSI_COLOR_BLUE "Blue (%d) is waiting in bridge cause of max cars on it and b:%d and r:%d and on bridge %d\n" ANSI_COLOR_RESET, blue_num, bridge->b_waiting, bridge->r_waiting, bridge->on_bridge);
             #endif
             wait(bridge_monitor);
-            bridge->b_down--;
             exitMonitor(bridge_monitor);
         }
     }
@@ -277,8 +266,6 @@ int main(int argc, char *argv[])
     bridge->r_waiting = 0;
     bridge->color = '\0';
     bridge->max_cars = atoi(argv[2]);   // first filename and then max_number //
-    bridge->b_down = 0;
-    bridge->r_down = 0;
     filename = argv[1];
 
     file = fopen(filename, "r");

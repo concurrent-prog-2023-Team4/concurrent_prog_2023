@@ -1,4 +1,4 @@
-Readme file for HW2 exercise 4
+Readme file for HW3 exercise 4
 ------------------------------
 There is a Makefile included that compiles all the files using -fsanatize=address:
 -make clean
@@ -12,7 +12,7 @@ The program prints messages for when a passenger arrives, when the passenger get
 In order to inform train to stop, in all tests the last number should be negative, and the program will create a passenger with the absolute
 value of it and then will inform train to stop.
 
-To run the program you need to give as arguments a test file and the max number of passengers that can be on the train each ride ( ./hw2_3 tests/<filename> <max_passengers> ).
-ex: ./hw2_4 tests/input.txt 3
+To run the program you need to give as arguments a test file and the max number of passengers that can be on the train each ride ( ./hw3_3 tests/<filename> <max_passengers> ).
+ex: ./hw3_4 tests/input.txt 3
 
 "Team 4"

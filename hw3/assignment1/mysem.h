@@ -10,7 +10,7 @@ typedef struct
 {
     int sem_id;
     int value;
-    pthread_mutex_t mutex, safe_read;
+    pthread_mutex_t mutex;
     pthread_cond_t cond;
 } mysem_t;
 

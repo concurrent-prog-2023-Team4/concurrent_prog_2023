@@ -76,7 +76,6 @@ void *passengers_function(void *varg)
             if(train->max_passengers == train->on_train)
             {   
                 exitMonitor(pass_wait);
-
                 enterMonitor(train_mon);
                 signal(train_mon);
                 exitMonitor(train_mon);
@@ -189,4 +188,6 @@ int main(int argc, char *argv[])
     printf("Monitor pass_wait destroyed\n");
     destroyMonitor(print);
     printf("Monitor print destroyed\n");
+
+    return 0;
 }

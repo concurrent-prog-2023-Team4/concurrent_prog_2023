@@ -3,7 +3,7 @@ CFLAGS = -Wall -fsanitize=address -g  # Compiler flags
 LDFLAGS = -fsanitize=address -lpthread  # Linker flags
 SRC_FILES = $(wildcard *.c)   # Include all .c files in the directory
 OBJ_FILES = $(SRC_FILES:.c=.o)  # List of object files
-TARGET = test   # Final executable name
+TARGET = hw3_1_test   # Final executable name
 
 # Main rule
 all: $(TARGET)
