@@ -23,7 +23,10 @@ void exitMonitor(Monitor *monitor)
 // Wait on the condition variable
 void wait(Monitor* monitor) 
 {
-    pthread_cond_wait(&monitor->cond, &monitor->mtx);
+    if (pthread_cond_wait(&monitor->cond, &monitor->mtx) != 0)
+    {
+        printf("Wait failed\n");
+    }
 }
 
 // Signal the condition variable

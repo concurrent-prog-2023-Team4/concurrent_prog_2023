@@ -24,46 +24,32 @@ void *worker_thread(void *varg)
     int result = -2;
     struct worker *ptr = (struct worker *)varg;
     int done_value;
+    int available;
 
     // mysem_up(&(ptr->start));    // notify main that thread created //
     while(1)
     {
-        // mysem_down(&(ptr->sem));    // make semaphore down //
-        // pthread_yield();
+        // enterMonitor(main_monitor);
+        // available = available_threads;
+        // exitMonitor(main_monitor);
 
+        // enterMonitor(main_finish);
+        // if(available == num_threads)
+        // {
+        //     signal(main_finish);
+        // }
+        // exitMonitor(main_finish);
 
-        enterMonitor(give_work);
-        available_threads++;
-        wait(give_work);
+        enterMonitor((*ptr).give_work);
+        // available_threads++;
+        if((*ptr).status == 1)
+            wait((*ptr).give_work);
         if((*ptr).status == -1)    // status is terminate //
         { 
+            exitMonitor((*ptr).give_work);
             break;
         }
-        if(global_number != -1)
-        {
-            (*ptr).number = global_number;
-            global_number = -1;
-            total_num++;
-            available_threads--;
-        }
-        else
-        {
-            available_threads--;
-            exitMonitor(give_work);
-            continue;
-        }
-        
-        // available_threads--;
-        exitMonitor(give_work);
-    
-
-
-        enterMonitor(get_number);
-        did_notify = 1;
-        signal(get_number);
-        
-        printf("Thread %d wakes up main\n", (*ptr).pos);
-        exitMonitor(get_number);
+        exitMonitor((*ptr).give_work);
 
         #ifdef DEBUG
         printf("Thread %d processing number %d\n", (*ptr).pos, (*ptr).number);
@@ -74,28 +60,41 @@ void *worker_thread(void *varg)
         (*ptr).result[0] = (int *) realloc((*ptr).result[0], sizeof(int) * (*ptr).size);
         (*ptr).result[1] = (int *) realloc((*ptr).result[1], sizeof(int) * (*ptr).size);
 
+        (*ptr).status = 1;
         enterMonitor(main_monitor);
+        available_threads++;
+        curr_thread = (*ptr).pos;
+        // ((*ptr).number = -1);
+        printf("Thread %d notify main\n", (*ptr).pos);
         signal(main_monitor);
         exitMonitor(main_monitor);
+
+        enterMonitor((*ptr).finish_work);
+        // (*ptr).did_notify = 1;
+        signal((*ptr).finish_work);
+        exitMonitor((*ptr).finish_work);
+
     }
     (*ptr).status = -2; 
     printf("Thread %d terminating...\n", (*ptr).pos);
 
-    enterMonitor(main_monitor);
-    signal(main_monitor);
-    exitMonitor(main_monitor);
+    // enterMonitor(main_monitor);
+    // signal(main_monitor);
+    // exitMonitor(main_monitor);
 
     pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[])
 {
-    int num_threads = 0;
+    num_threads = 0;
     int i = 0, j = 0;
     int number = -1;
     int sum = 0;
     int result = -2;
     int available;
+    int curr_status = -3;
+    int curr_thread_temp = -1;
 
     FILE *output_file;
 
@@ -120,11 +119,9 @@ int main(int argc, char *argv[])
     // blocked_main = 0;
     // curr_thread = -1;
 
-    did_notify = 0;
-
-    get_number = initMonitor(get_number);
-    give_work = initMonitor(give_work);
+    available_threads = num_threads;
     main_monitor = initMonitor(main_monitor);
+    main_finish = initMonitor(main_finish);
 
     for(i = 0; i < num_threads; i++)
     {
@@ -136,24 +133,15 @@ int main(int argc, char *argv[])
         workers[i].result[0][0] = -1;
         workers[i].size = 1;
         workers[i].pos = i;
-
-        // mysem_create(&(workers[i].sem));
-        // mysem_init(&(workers[i].sem), 0);   // init the semaphores //
-
-        // mysem_create(&(workers[i].finish));
-        // mysem_init(&(workers[i].finish), 0);   // init the semaphores //
-
-        // mysem_create(&(workers[i].term));
-        // mysem_init(&(workers[i].term), 0);
+        workers[i].did_notify = 0;
         
-        // mysem_create(&(workers[i].start));
-        // mysem_init(&(workers[i].start), 0);
+        workers[i].give_work = initMonitor(workers[i].give_work);
+        workers[i].finish_work = initMonitor(workers[i].finish_work);
     }
 
     for(i = 0; i < num_threads; i++)
     {
         pthread_create(&id[i], NULL, worker_thread, (void*) (workers + i));
-        // mysem_down(&(workers[i].start));
         // prepei na perimenei na ftiaxtoun 
         printf("Thread %d created\n", i);
     }
@@ -166,99 +154,81 @@ int main(int argc, char *argv[])
             printf("No more input\n");
             break;
         }
-        enterMonitor(give_work);
-        global_number = number;
-        exitMonitor(give_work);
 
-        enterMonitor(get_number);
-        did_notify = 0;
-        exitMonitor(get_number);
-
-        // for(i = 0; i < num_threads; i++)
-        // {
-        //     if(workers[i].status == 1)
-        //     {
-        //         curr_thread = i;
-        //         printf("find available\n");
-        //         break;
-        //     }
-        // }
-        // if(i == num_threads)    // all are busy //
-        // {
-        //     printf("before mtx\n");
-        //     mysem_down(&mtx);
-        //     blocked_main = 1;
-        //     mysem_up(&mtx);
-        //     printf("Main is going down for real\n");
-        //     mysem_down(&sem_main);
-        // }
-
-        enterMonitor(give_work);
-        available = available_threads;
-        exitMonitor(give_work);
-        
-        enterMonitor(main_monitor);
-        if(available_threads == 0)
+        for(i = 0; i < num_threads; i++)
         {
-            printf("Main sleeps cause all threads busy\n");
-            wait(main_monitor);
+            enterMonitor(workers[i].give_work);
+            curr_status = workers[i].status;
+            exitMonitor(workers[i].give_work);
+            if(curr_status == 1)
+            {
+                enterMonitor(main_monitor);
+                curr_thread = i;
+                exitMonitor(main_monitor);
+                break;  // found available //
+            }
         }
+        if(i == num_threads)
+        {
+            enterMonitor(main_monitor);
+            printf("Main is going for sleep\n");
+            wait(main_monitor);
+            exitMonitor(main_monitor);
+            printf("Main wakes up from thread %d\n", curr_thread);
+        }
+        enterMonitor(main_monitor);
+        curr_thread_temp = curr_thread;
+        available_threads--;
         exitMonitor(main_monitor);
 
-        enterMonitor(give_work);
-        available = available_threads;
-        if(available > 0)
-        {
-            signal_all(give_work);
-            exitMonitor(give_work);
-
-            enterMonitor(get_number);
-            while(did_notify != 1)
-            {
-                printf("Main: sleep now and available is %d and total num is %d\n", available_threads, total_num);
-                wait(get_number);
-            }
-            exitMonitor(get_number);
-        }     
-        // workers[curr_thread].number = number;     // give work //
-        // workers[curr_thread].status = 0;         // make thread busy //
-        // result = mysem_up(&(workers[curr_thread].sem));
-        // if(result == 0)
-        //     printf("Semaphore sem lost up\n");
+        enterMonitor(workers[curr_thread_temp].give_work);
+        workers[curr_thread_temp].number = number;
+        workers[curr_thread_temp].status = 0;
+        signal(workers[curr_thread_temp].give_work);
+        exitMonitor(workers[curr_thread_temp].give_work);
     }
     while(number > 0);
 
     #ifdef DEBUG
     // printf("before mutex and value is %d\n", semctl(mtx.sem_id, 0, GETVAL));
     #endif 
-
-    // sleep(2);
-
-    enterMonitor(give_work);
-    available = available_threads;
-    exitMonitor(give_work);
-
-    while(available != num_threads)
+        
+    for(i = 0; i < num_threads; i++)
     {
-        enterMonitor(main_monitor);
-        wait(main_monitor);
-        exitMonitor(main_monitor);
-
-        enterMonitor(give_work);
-        available = available_threads;
-        exitMonitor(give_work);
-
-        printf("Available %d\n", available_threads);
-    }   // when you finish this, all workers are available //
+        enterMonitor(workers[i].finish_work);
+        if(workers[i].status == 0)
+        {
+            // if(workers[i].did_notify != 1)
+                wait(workers[i].finish_work);
+        }
+        workers[i].did_notify = 0;
+        exitMonitor(workers[i].finish_work);
+    }
 
     for(i = 0; i < num_threads; i++)
     {
+        enterMonitor(workers[i].give_work);
         workers[i].status = -1;
+        exitMonitor(workers[i].give_work);
     }
-    enterMonitor(give_work);
-    signal_all(give_work);
-    exitMonitor(give_work);
 
+    for(i = 0; i < num_threads; i++)
+    {
+        enterMonitor(workers[i].give_work);
+        signal(workers[i].give_work);
+        exitMonitor(workers[i].give_work);
+    }
+
+    // for(i = 0; i < num_threads; i++)
+    // {
+    //     enterMonitor(workers[i].finish_work);
+    //     if(workers[i].status != -2)
+    //     {
+    //         // if(workers[i].did_notify != 1)
+    //             wait(workers[i].finish_work);
+    //     }
+    //     exitMonitor(workers[i].finish_work);
+    // }
 
     output_file = fopen("out.txt", "w");
 
@@ -280,24 +250,14 @@ int main(int argc, char *argv[])
     }
 
     printf("Total numbers that program calulated are %d\n\n", sum);
-     
-    // if(mysem_destroy(&mtx))
-    //     printf("Semaphore mtx destroyed succesfully!\n");
-    // for (i = 0; i < num_threads; i++) 
-    // {
-    //     if (mysem_destroy(&(workers[i].sem)))
-    //         printf("Semaphore workers[%d].sem destroyed succesfully!\n", i);
-    //     if (mysem_destroy(&(workers[i].finish)))
-    //         printf("Semaphore workers[%d].finish destroyed succesfully!\n", i);
-    //     if (mysem_destroy(&(workers[i].term)))
-    //         printf("Semaphore workers[%d].term destroyed succesfully!\n", i);
-    //     if (mysem_destroy(&(workers[i].start)))
-    //         printf("Semaphore workers[%d].start destroyed succesfully!\n", i);
-    // }
    
     destroyMonitor(main_monitor);
-    destroyMonitor(get_number);
-    destroyMonitor(give_work);
+    destroyMonitor(main_finish);
+    for(i = 0; i < num_threads; i++)
+    {
+        destroyMonitor(workers[i].give_work);
+    }
+    printf("Monitors succesfully destroyed!\n");
 
     printf("Main exiting...\n");
 

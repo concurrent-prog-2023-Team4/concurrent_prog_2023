@@ -148,18 +148,6 @@ int main(int argc, char *argv[])
             printf("No more input\n");
             break;
         }
-        // while(1)
-        // {
-        //     if(j == num_threads)
-        //         j = 0;
-
-        //     if(workers[j].status == 1)  // thread available //
-        //     {
-        //         break;
-        //     }
-        //     j++;
-        // }
-        printf("mpika\n");
 
         for(i = 0; i < num_threads; i++)
         {
