@@ -8,7 +8,7 @@ For testing we use 5 files (folder /tests) that create different scenarios of re
 The files contain the color of the car to be created and an integer that is how many seconds later it arrives at the bridge.
 The file more_reds creates 20 red cars and 4 blue cars.
 The file 2_waits creates a scenario where the time the bridge is empty there are both red and blue cars waiting to pass.
-The remaining 2 files create a random combination of red and blue cars
+The remaining 3 files create a random combination of red and blue cars
 
 The program prints messages for when a car is created, when it is waiting and for what reason, when it enters and exits the bridge as well as information about how many cars are waiting on each side of the bridge and how many are currenty on the bridge.
 

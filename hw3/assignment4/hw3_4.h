@@ -22,10 +22,6 @@ typedef struct train train_t;
 train_t *train;
 long int pass_num;
 
-// mysem_t mtx;    // to read struct //
-// mysem_t train_sem;
-// mysem_t pass_wait; // blocks waiting passengers //
-// mysem_t pass_ride; // blocks passengers on train //
 Monitor *train_mon;
 Monitor *pass_wait;
 Monitor *pass_ride;

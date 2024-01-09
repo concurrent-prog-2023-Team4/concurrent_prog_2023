@@ -251,13 +251,13 @@ int main(int argc, char *argv[])
 
     printf("Total numbers that program calulated are %d\n\n", sum);
    
-    destroyMonitor(main_monitor);
-    destroyMonitor(main_finish);
-    for(i = 0; i < num_threads; i++)
-    {
-        destroyMonitor(workers[i].give_work);
-    }
-    printf("Monitors succesfully destroyed!\n");
+    // destroyMonitor(main_monitor);
+    // destroyMonitor(main_finish);
+    // for(i = 0; i < num_threads; i++)
+    // {
+    //     destroyMonitor(workers[i].give_work);
+    // }
+    // printf("Monitors succesfully destroyed!\n");
 
     printf("Main exiting...\n");
 
