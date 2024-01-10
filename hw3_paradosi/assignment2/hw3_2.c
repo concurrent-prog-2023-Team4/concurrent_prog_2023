@@ -1,4 +1,4 @@
-// HW3 exercise 2
+// HW1 exercise 2
 #include "hw3_2.h"
 
 int find_prime(int number)

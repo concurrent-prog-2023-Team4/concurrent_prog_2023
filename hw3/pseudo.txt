@@ -109,6 +109,74 @@ destroyMonitor():
 hw3_2
 -----
 
+struct worker:
+    int number;
+    int status;
+    int size;
+    int *result[2];
+    int pos;
+    Monitor *give_work;
+    Monitor *finish_work;
+
+
+main():
+    read as argument number of threads
+    for i : number of threads
+        initialize struct of worker i
+    create and initialize monitors
+    for i : number_of_threads
+        pthread_create()
+    
+    while(number greater than 0)
+        read numbers from stdin
+        for i: number_of_threads
+            if(found available)
+                curr_thread = i;
+        if(not found)
+            wait(main_monitor)
+        give work to worker
+        change its status to busy
+        signal(currentWorker.give_work)
+
+    for i : number_of_threads
+        if(currentWorker is not available)
+            wait(currentWorker.finish_work)
+    
+    for i : number_of_threads
+        workers[i].status = inform_to_exit
+
+    for i : number_of_threads
+        signal(workers[i].finish_work)
+    
+    for i : number_of_threads
+        pthread_join(id[i]);
+    
+    write all numbers and results on a file out.txt
+    print (total numbers that calculated)
+    destroy all Monitors
+    
+    return SUCCESS
+
+
+worker_thread():
+    while(1)
+        if(status is available)
+            wait(current_worker.give_work)
+        if (status is terminate)
+            break;
+        find prime
+        append result array
+        current_worker.status = busy
+        current_thread = pos
+        signal(main_monitor)
+        signal(current_worker.finish_work)
+    status = terminated
+    pthread_exit()
+
+
+        
+
+
 
 
 hw3_3
