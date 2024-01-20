@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "../monitor_lib/monitors.h"
+// #define DEBUG
 
 
 #define ANSI_COLOR_RED     "\x1b[31m"   // define color codes to print TCL messages //

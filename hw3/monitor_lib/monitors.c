@@ -3,8 +3,15 @@
 
 Monitor *initMonitor(Monitor *monitor)
 {
-    monitor = (Monitor *) malloc(sizeof(Monitor));
-    pthread_mutex_init(&(monitor->mtx), NULL);
+    // monitor = (Monitor *) malloc(sizeof(Monitor));
+    // if(monitor == NULL)
+    // {
+    //     printf("Malloc failed\n");
+    // }
+    if(pthread_mutex_init(&(monitor->mtx), NULL) != 0)
+    {
+        printf("ERROR on initialization\n");
+    }
     pthread_cond_init(&(monitor->cond), NULL);
 
     return monitor;

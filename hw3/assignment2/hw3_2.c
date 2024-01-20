@@ -25,6 +25,7 @@ void *worker_thread(void *varg)
     struct worker *ptr = (struct worker *)varg;
     int done_value;
     int available;
+    int status;
 
     // mysem_up(&(ptr->start));    // notify main that thread created //
     while(1)
@@ -69,18 +70,21 @@ void *worker_thread(void *varg)
         signal(main_monitor);
         exitMonitor(main_monitor);
 
-        enterMonitor((*ptr).finish_work);
-        // (*ptr).did_notify = 1;
-        signal((*ptr).finish_work);
-        exitMonitor((*ptr).finish_work);
+        enterMonitor((*ptr).give_work);
+        status = (*ptr).status;
+        exitMonitor((*ptr).give_work);  
+        if (status != 0)
+        {
+            enterMonitor((*ptr).finish_work);
+            // (*ptr).did_notify = 1;
+            printf("Thread %d wakes up main to finish\n", (*ptr).pos);
+            signal((*ptr).finish_work);
+            exitMonitor((*ptr).finish_work);
+        }
 
     }
     (*ptr).status = -2; 
     printf("Thread %d terminating...\n", (*ptr).pos);
-
-    // enterMonitor(main_monitor);
-    // signal(main_monitor);
-    // exitMonitor(main_monitor);
 
     pthread_exit(NULL);
 }
@@ -110,16 +114,9 @@ int main(int argc, char *argv[])
 
     workers = (struct worker *) calloc(num_threads, sizeof(struct worker));
 
-    // mysem_create(&mtx);
-    // mysem_init(&mtx, 1);
-
-    // mysem_create(&sem_main);
-    // mysem_init(&sem_main, 0);
-
-    // blocked_main = 0;
-    // curr_thread = -1;
-
     available_threads = num_threads;
+    main_monitor = (Monitor *) malloc(2*sizeof(Monitor));
+    main_finish = (Monitor *) malloc(2*sizeof(Monitor));
     main_monitor = initMonitor(main_monitor);
     main_finish = initMonitor(main_finish);
 
@@ -134,6 +131,9 @@ int main(int argc, char *argv[])
         workers[i].size = 1;
         workers[i].pos = i;
         workers[i].did_notify = 0;
+
+        workers[i].give_work = (Monitor *) malloc(2*sizeof(Monitor));
+        workers[i].finish_work = (Monitor *) malloc(2*sizeof(Monitor));
         
         workers[i].give_work = initMonitor(workers[i].give_work);
         workers[i].finish_work = initMonitor(workers[i].finish_work);
@@ -145,6 +145,7 @@ int main(int argc, char *argv[])
         // prepei na perimenei na ftiaxtoun 
         printf("Thread %d created\n", i);
     }
+    usleep(10);
     total_num = 0;
     do
     {
@@ -200,6 +201,7 @@ int main(int argc, char *argv[])
         {
             // if(workers[i].did_notify != 1)
                 wait(workers[i].finish_work);
+                printf("Main waits for thread to finish\n");
         }
         workers[i].did_notify = 0;
         exitMonitor(workers[i].finish_work);
@@ -226,6 +228,28 @@ int main(int argc, char *argv[])
     //     {
     //         // if(workers[i].did_notify != 1)
     //             wait(workers[i].finish_work);
+    //     }
+    //     exitMonitor(workers[i].finish_work);
+    // }
+    // for(i = 0; i < num_threads; i++)
+    // {
+    //     if(workers[i].status == 0)
+    //     {
+    //         enterMonitor(workers[i].give_work);
+    //         workers[i].status = -1;
+    //         signal(workers[i].give_work);
+    //         exitMonitor(workers[i].give_work);
+
+    //         enterMonitor(workers[i].finish_work);
+    //         wait(workers[i].finish_work);
+    //         exitMonitor(workers[i].finish_work);
+    //     }
+        
+
+    //     enterMonitor(workers[i].finish_work);
+    //     if(workers[i].status != -2)
+    //     {
+    //         wait(workers[i].finish_work);
     //     }
     //     exitMonitor(workers[i].finish_work);
     // }
