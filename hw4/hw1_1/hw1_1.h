@@ -11,3 +11,6 @@ co_t *thread_1, *thread_2, *main_co;
 
 char *input;
 
+void *thread_func_2(void *argv);
+void *thread_func_1(void *argv);
+

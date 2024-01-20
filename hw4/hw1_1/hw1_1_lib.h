@@ -9,6 +9,7 @@ typedef struct pipe_info
     int write;
     int read;
     char *pipe;
+    int valid_size;
 } pipe_info;
 
 pipe_info pipe_list[5];    // global array of char pointers to the pipe_list //

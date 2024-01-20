@@ -8,6 +8,7 @@ int mycoroutines_init(co_t *main)
     (*main).cot->uc_stack.ss_sp = (*main).stack;
     (*main).cot->uc_stack.ss_size = STACK_SIZE;
     (*main).cot->uc_stack.ss_flags = 0;
+    (*main).next_cot = NULL;
 
     return 0;
 }
@@ -25,10 +26,10 @@ int mycoroutines_create(co_t *thread, void (*routine)(void *), void *arg)
     return 0;
 }
 
-int mycoroutines_switchto(co_t *thread1, co_t *thread2)
+int mycoroutines_switchto(co_t *thread1)
 {
     // Save the current context to thread1 and switch to thread2
-    if (swapcontext(thread1->cot, thread2->cot) == -1) 
+    if (swapcontext(thread1->cot, thread1->next_cot) == -1) 
     {
         printf("Error occurred during context switch\n");
         return -1; // Error occurred during context switch

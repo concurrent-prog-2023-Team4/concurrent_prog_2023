@@ -7,6 +7,7 @@ void pipe_info_init(pipe_info pipe_struct)
     pipe_struct.read = 0;
     pipe_struct.write = 0;
     pipe_struct.pipe = NULL;
+    pipe_struct.valid_size = 0;
 }
 
 int pipe_open (int size)
@@ -45,6 +46,7 @@ int pipe_write(int p, char c)
     int currSize = pipe_list[p].size;
 
     pipe_list[p].pipe[currWrite] = c;
+    pipe_list[p].valid_size++;
 
     if (currWrite + 1 == currSize) 
     {
@@ -72,33 +74,9 @@ int pipe_writeDone(int p)
 int pipe_read(int p, char *c)
 {   
     int currRead = pipe_list[p].read;
-    int counter = 0;
 
-
+    *c = pipe_list[p].pipe[currRead];
     
-    // if(pipe_list[p].write == -1)        // only if pipe is closed for write //
-    // {
-        // for(int i = 0; i < pipe_list[p].size; i++)
-        // {
-        //     if (pipe_list[p].pipe[i] == '\0') 
-        //     {
-        //         counter++ ;    
-        //     }
-        // }
-        // if (counter == pipe_list[p].size)
-        // {
-        //     pipe_list[p].read = -1;
-        //     return 0;   // if pipe is empty and write is close // 
-        // }
-    // }
-
-    // while(pipe_list[p].pipe[currRead] == '\0')
-    // {
-    //     if(pipe_list[p].write == -1)
-    //         break;
-    // }
-
-    c = strncat(c, &pipe_list[p].pipe[currRead], 1);    // concutanate one by one characters in string //
     pipe_list[p].pipe[currRead] = '\0';        // when it reads a char, make slot \0 //
 
     if(pipe_list[p].read + 1 == pipe_list[p].size)
