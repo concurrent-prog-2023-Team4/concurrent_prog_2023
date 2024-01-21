@@ -95,23 +95,3 @@ int pipe_read(int p, char *c)
     
     return 1;
 }
-
-int pipe_is_full(int p)
-{
-    int counter = 0;
-    for(int i = 0; i < pipe_list[p].size; i++)
-    {
-        if (pipe_list[p].pipe[i] == '\0') 
-        {
-            counter++ ;    
-        }
-    }
-    if (counter == pipe_list[p].size)
-    {
-        return 1;   // full //
-    }
-    else
-    {
-        return 0;
-    }
-}
