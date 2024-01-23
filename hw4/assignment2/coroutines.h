@@ -1,7 +1,4 @@
 //
-#ifndef _COROUTINES_H_
-#define _COROUTINES_H_
-
 #include <stdio.h>
 #include <ucontext.h>
 #include <stdlib.h>
@@ -22,7 +19,6 @@ int mycoroutines_create(co_t *coroutines, void (*func)(void *), void *arg);
 int mycoroutines_switchto(co_t *coroutines);
 int mycoroutines_destroy(co_t *coroutines);
 
-#endif
 
 
 

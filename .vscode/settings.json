@@ -10,7 +10,9 @@
     "*.txt": "c",
     "monitors.h": "c",
     "sem.h": "c",
-    "pseudo": "c"
+    "pseudo": "c",
+    "semaphores.h": "c",
+    "scheduler.h": "c"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
