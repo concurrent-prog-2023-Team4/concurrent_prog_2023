@@ -13,18 +13,20 @@ int mycoroutines_init(co_t *main)
     return 0;
 }
 
-int mycoroutines_create(co_t *thread, void (*routine)(void *), void *arg)
+int mycoroutines_create(co_t *coroutine, void (*routine)(void *), void *arg)
 {
-    // Initialize the thread coroutine
-    if(thread == NULL)
-        thread = (co_t *) malloc(sizeof(co_t));
-    thread->cot = (ucontext_t *) malloc(sizeof(ucontext_t));
-    getcontext(thread->cot);
-    (*thread).cot->uc_link = 0;
-    (*thread).cot->uc_stack.ss_sp = (*thread).stack;
-    (*thread).cot->uc_stack.ss_size = STACK_SIZE;
-    (*thread).cot->uc_stack.ss_flags = 0;
-    makecontext(thread->cot, (void (*)(void))routine, 1, arg);
+    // Initialize the coroutine coroutine
+    if(coroutine == NULL)
+    {
+        coroutine = (co_t *) malloc(sizeof(co_t));
+    }
+    coroutine->cot = (ucontext_t *) malloc(sizeof(ucontext_t));
+    getcontext(coroutine->cot);
+    (*coroutine).cot->uc_link = 0;
+    (*coroutine).cot->uc_stack.ss_sp = (*coroutine).stack;
+    (*coroutine).cot->uc_stack.ss_size = STACK_SIZE;
+    (*coroutine).cot->uc_stack.ss_flags = 0;
+    makecontext(coroutine->cot, (void (*)(void))routine, 1, arg);
 
     return 0;
 }
@@ -53,7 +55,7 @@ int mycoroutines_destroy(co_t *thread)
 }
 
 
-void sem_create(sem_t *sem, int value)
+sem_t *sem_create(sem_t *sem, int value)
 {
     if(sem == NULL)
     {
@@ -62,6 +64,8 @@ void sem_create(sem_t *sem, int value)
     sem->value = value;
     sem->queue = NULL;
     sem->size = 0;
+
+    return sem;
 }
 
 void sem_destroy(sem_t *sem)
@@ -150,15 +154,16 @@ void sem_down(sem_t *sem, int thread_id)
 void mythreads_create(thr_t *thread, void (*func)(void *), void *arg)
 {
     // Initialize the thread coroutine //
-    sem_down(&mtx, thread->id);
+    sem_down(mtx, thread->id);
 
     thread->state = READY;
-    sem_create(thread->finish, 0);
+    thread->finish = NULL;
+    thread->finish = sem_create(thread->finish, 0);
     thread->id = thread_ids;
     thread_ids++;
     mycoroutines_create(thread->coroutine, func, arg);
 
-    sem_up(&mtx);
+    sem_up(mtx);
 }
 
 void mythreads_join(thr_t *thread)
@@ -169,7 +174,7 @@ void mythreads_join(thr_t *thread)
 
 void mythread_destroy(thr_t *thread)
 {
-    sem_down(&mtx, thread->id);
+    sem_down(mtx, thread->id);
 
     mycoroutines_destroy(thread->coroutine);
     thread->state = BLOCKED;
@@ -178,12 +183,13 @@ void mythread_destroy(thr_t *thread)
 
     sem_up(thread->finish); // inform that thread finished //
 
-    sem_up(&mtx);
+    sem_up(mtx);
 }
 
 void mythtreads_init()
 {
-    sem_create(&mtx, 1);
+    mtx = NULL;
+    mtx = sem_create(mtx, 1);
     thread_ids = 0;
     set_alarm(500);  // 500 useconds //
 }
