@@ -3,6 +3,9 @@
 #include <signal.h>
 #include <unistd.h>
 #include <ucontext.h>
+#include <sys/time.h>
+
+#define MY_CUSTOM_SIGNAL (SIGRTMIN + 1)
 
 struct semaphore
 {
@@ -16,7 +19,7 @@ sem_t *sem_create(sem_t *sem, int value);
 void sem_destroy(sem_t *sem);
 void sem_up(sem_t *sem);
 void sem_down(sem_t *sem, int thread_id);
-void shift_right(sem_t *sem);
+void shift_left(sem_t *sem);
 
 #define STACK_SIZE 16384
 
@@ -29,7 +32,7 @@ struct coroutine
 typedef struct coroutine co_t;
 
 int mycoroutines_init(co_t *coroutines);
-int mycoroutines_create(co_t *coroutines, void (*func)(void *), void *arg);
+int mycoroutines_create(co_t **coroutines, void (*func)(void *), void *arg);
 int mycoroutines_switchto(co_t *coroutines);
 int mycoroutines_destroy(co_t *coroutines);
 
@@ -59,3 +62,7 @@ int thread_ids;
 thr_t *threads_array;   // -1 terminated array of threads //
 
 sem_t *mtx; // we need to init //
+
+void timer_init();
+
+int finish;

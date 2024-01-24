@@ -1,4 +1,6 @@
 #include "all.h"
+int finish;
+
 
 int mycoroutines_init(co_t *main)
 {
@@ -13,20 +15,20 @@ int mycoroutines_init(co_t *main)
     return 0;
 }
 
-int mycoroutines_create(co_t *coroutine, void (*routine)(void *), void *arg)
+int mycoroutines_create(co_t **coroutine, void (*routine)(void *), void *arg)
 {
     // Initialize the coroutine coroutine
-    if(coroutine == NULL)
+    if(*coroutine == NULL)
     {
-        coroutine = (co_t *) malloc(sizeof(co_t));
+        *coroutine = (co_t *) malloc(sizeof(co_t));
     }
-    coroutine->cot = (ucontext_t *) malloc(sizeof(ucontext_t));
-    getcontext(coroutine->cot);
-    (*coroutine).cot->uc_link = 0;
-    (*coroutine).cot->uc_stack.ss_sp = (*coroutine).stack;
-    (*coroutine).cot->uc_stack.ss_size = STACK_SIZE;
-    (*coroutine).cot->uc_stack.ss_flags = 0;
-    makecontext(coroutine->cot, (void (*)(void))routine, 1, arg);
+    (*coroutine)->cot = (ucontext_t *) malloc(sizeof(ucontext_t));
+    getcontext((*coroutine)->cot);
+    (*coroutine)->cot->uc_link = 0;
+    (*coroutine)->cot->uc_stack.ss_sp = (*coroutine)->stack;
+    (*coroutine)->cot->uc_stack.ss_size = STACK_SIZE;
+    (*coroutine)->cot->uc_stack.ss_flags = 0;
+    makecontext((*coroutine)->cot, (void (*)(void))routine, 1, arg);
 
     return 0;
 }
@@ -108,29 +110,32 @@ void sem_up(sem_t *sem)
     threads_array[thread_pos].state = READY;
     sem->queue[0] = -1;
 
-    shift_right(sem);
+    shift_left(sem);
     sem->queue = (int *) realloc(sem->queue, (sem->size - 1) * sizeof(int));
     sem->size--;
 
     sigprocmask(SIG_SETMASK, &old_mask, NULL);
 }
     
-void shift_right(sem_t *sem)
+void shift_left(sem_t *sem)
 {
-    for (int i = sem->size - 1; i >= 0; i--)
+    for (int i = 0; i < sem->size - 1; i++)
     {
-        sem->queue[i + 1] = sem->queue[i];
+        sem->queue[i] = sem->queue[i + 1];
     }
 }
+
 
 void sem_down(sem_t *sem, int thread_id)
 {
     int thread_pos;
+    int i;
+    int temp;
     sigset_t new_mask, old_mask;
 
     sigemptyset(&new_mask);
     sigaddset(&new_mask, SIGALRM);
-    sigprocmask(SIG_BLOCK, &new_mask, &old_mask);
+    sigprocmask(SIG_BLOCK, &new_mask, NULL);
 
     if(sem->value == 0)
     {
@@ -141,14 +146,31 @@ void sem_down(sem_t *sem, int thread_id)
         find_thread(thread_id, &thread_pos);
         threads_array[thread_pos].state = BLOCKED;
 
-        sigprocmask(SIG_SETMASK, &old_mask, NULL);
+        for(i = current_thread + 1; i != current_thread; i++)
+        {
+            if(threads_array[i].id == -1)
+            {
+                i = -1;
+                continue;
+            }
+            if(threads_array[i].state == READY)
+            {
+                threads_array[current_thread].coroutine->next_cot = threads_array[i].coroutine->cot;
+                printf("From down: switch to %d\n", i);
+                temp = current_thread;
+                current_thread = i;
+                mycoroutines_switchto(threads_array[temp].coroutine);
+                break;
+            }
+        }
+
+        printf("no threads available\n");
 
         return;
     }
     sem->value--;
-    sigprocmask(SIG_SETMASK, &old_mask, NULL);
-
-    signal(SIGUSR1, handle_alarm);
+    
+    sigprocmask(SIG_UNBLOCK, &new_mask, NULL);
 }
 
 void mythreads_create(thr_t *thread, void (*func)(void *), void *arg)
@@ -161,7 +183,7 @@ void mythreads_create(thr_t *thread, void (*func)(void *), void *arg)
     thread->finish = sem_create(thread->finish, 0);
     thread->id = thread_ids;
     thread_ids++;
-    mycoroutines_create(thread->coroutine, func, arg);
+    mycoroutines_create(&(thread->coroutine), func, arg);
 
     sem_up(mtx);
 }
@@ -169,7 +191,7 @@ void mythreads_create(thr_t *thread, void (*func)(void *), void *arg)
 void mythreads_join(thr_t *thread)
 {
     // Join the thread coroutine //
-    sem_down(thread->finish, thread->id);
+    sem_down(thread->finish, 0);
 }
 
 void mythread_destroy(thr_t *thread)
@@ -188,10 +210,9 @@ void mythread_destroy(thr_t *thread)
 
 void mythtreads_init()
 {
-    mtx = NULL;
-    mtx = sem_create(mtx, 1);
     thread_ids = 0;
-    set_alarm(500);  // 500 useconds //
+    // set_alarm(50);  // 500 useconds //
+    timer_init();
 }
 
 void find_thread(int thread_id, int *pos)
@@ -214,8 +235,9 @@ void find_thread(int thread_id, int *pos)
 void handle_alarm(int signum)
 {
     int i;
+    int temp;
 
-    for(i = current_thread + 1; i == current_thread; i++)
+    for(i = current_thread + 1; i != current_thread; i++)
     {
         if(threads_array[i].id == -1)
         {
@@ -225,34 +247,74 @@ void handle_alarm(int signum)
         if(threads_array[i].state == READY)
         {
             threads_array[current_thread].coroutine->next_cot = threads_array[i].coroutine->cot;
-            mycoroutines_switchto(threads_array[current_thread].coroutine);
+            printf ("curr thread is %d\n", i);
+            temp = current_thread;
+            current_thread = i;
+            mycoroutines_switchto(threads_array[temp].coroutine);
+            
             break;
         }
     }
 }
 
-// Function to set an alarm for a specified number of seconds
-void set_alarm(int seconds) 
+// // Function to set an alarm for a specified number of seconds
+// void set_alarm(int seconds) 
+// {
+//     // Set the alarm signal handler
+//     signal(SIGALRM, handle_alarm);
+
+//     // Set the alarm to trigger after the specified number of seconds
+//     ualarm(seconds, 0);
+
+//     // Sleep to allow the alarm to trigger
+//     // usleep(seconds);
+// }
+
+void timer_init()
 {
-    // Set the alarm signal handler
-    signal(SIGALRM, handle_alarm);
+    struct itimerval t = {{0}};
+    struct sigaction act = {{0}};
+    int sig_val;
 
-    // Set the alarm to trigger after the specified number of seconds
-    alarm(seconds);
+    act.sa_handler = handle_alarm;
+    act.sa_flags = SA_RESTART;
 
-    // Sleep to allow the alarm to trigger
-    usleep(seconds);
+    //alarm every 0.5 seconds
+    t.it_value.tv_sec = 0;
+    t.it_value.tv_usec = 500000;
+    t.it_interval.tv_sec = 0;
+    t.it_interval.tv_usec = 500000;
+
+
+    sig_val = sigaction(SIGALRM, &act, NULL);
+    if(sig_val == -1)
+    {
+        perror("sigaction error");
+        return;
+    }
+
+    setitimer(ITIMER_REAL,&t,NULL);
 }
-
 
 void *thread_func(void *arg)
 {
     int *curr_id = (int *) arg;
+    printf("Thread created %d\n", *curr_id);
+    //while(1)
+    //{
+        // if(finish == 1)
+        // {
+        //     break;
+        // }
+    //    printf("in thread %d\n", *curr_id);
+
+    //}
     // Print the thread ID
-    printf("Thread created\n");
+
+    sleep(10);
 
     // Destroy the current thread
-    mythread_destroy(& (threads_array[*curr_id]) );
+    // mythread_destroy(& (threads_array[*curr_id]));
 
     return NULL;
 }
@@ -262,24 +324,39 @@ int main()
     int i;
     // Initialize the main thread
     i = 0;
-    mythtreads_init();
+    int j = 2;
+
+    mtx = NULL;
+    mtx = sem_create(mtx, 1);
+
+    signal(MY_CUSTOM_SIGNAL, handle_alarm);
 
     threads_array = (thr_t *) malloc(4 * sizeof(thr_t));
 
-    // Create the first thread
-    mythreads_create(&threads_array[0], thread_func, &i);
-
+    mythreads_create(&threads_array[0],(void*) main, &i);
+ 
     i++;
+
+    // Create the first thread
+    mythreads_create(&threads_array[1], (void*) thread_func, &j);
+
     // Create the second thread
-    mythreads_create(&threads_array[1], thread_func, &i);
+    mythreads_create(&threads_array[2], (void*) thread_func, &i);
 
-    threads_array[2].id = -1;
+    // printf("Threads created\n");
 
+    threads_array[3].id = -1;
+
+    mythtreads_init();
+
+    sleep(5);
+
+    // finish = 1;
     // Join the first thread
-    mythreads_join(&threads_array[0]);
+    mythreads_join(&threads_array[1]);
 
     // Join the second thread
-    mythreads_join(&threads_array[1]);
+    mythreads_join(&threads_array[2]);
 
     return 0;
 }
