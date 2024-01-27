@@ -78,7 +78,7 @@ void sem_destroy(sem_t *sem)
     sem->size = 0;
 }
 
-void sem_up(sem_t *sem)
+int sem_up(sem_t *sem)
 {
     int thread_pos;
     sigset_t new_mask;
@@ -90,14 +90,14 @@ void sem_up(sem_t *sem)
     if(sem->value == 1)
     {
         printf("Error: sem_up() called on a semaphore with value 1\n");
-        return;
+        return 0;   // lost up //
     }
     
     if(sem->size == 0)
     {
         sem->value++;
         sigprocmask(SIG_UNBLOCK, &new_mask, NULL);
-        return;
+        return 1;
     }
     // make the first thread in the queue ready //
     find_thread(sem->queue[0], &thread_pos);
@@ -105,7 +105,7 @@ void sem_up(sem_t *sem)
     {
         printf("Thread not found!\n");
         sigprocmask(SIG_UNBLOCK, &new_mask, NULL);
-        return;
+        return -2; // thread not found //
     }
     threads_array[thread_pos].state = READY;
     sem->queue[0] = -1;
@@ -115,6 +115,8 @@ void sem_up(sem_t *sem)
     sem->size--;
 
     sigprocmask(SIG_UNBLOCK, &new_mask, NULL);
+
+    return 1;   // succeeded //
 }
     
 void shift_left(sem_t *sem)
@@ -126,13 +128,16 @@ void shift_left(sem_t *sem)
 }
 
 
-void sem_down(sem_t *sem, int thread_id)
+int sem_down(sem_t *sem)
 {
     int thread_pos;
     int i;
     int temp;
-    sigset_t new_mask, old_mask;
+    sigset_t new_mask;
     int found_avaialble_thread = 0;
+    int thread_id;
+    
+    thread_id = current_thread;
 
     sigemptyset(&new_mask);
     sigaddset(&new_mask, SIGALRM);
@@ -149,7 +154,7 @@ void sem_down(sem_t *sem, int thread_id)
 
         for(i = current_thread + 1; i != current_thread; i++)
         {
-            if(threads_array[i].id == -1)
+            if(threads_array[i].id == 0)
             {
                 i = -1;
                 continue;
@@ -170,17 +175,19 @@ void sem_down(sem_t *sem, int thread_id)
             printf("no threads available\n");
 
         sigprocmask(SIG_UNBLOCK, &new_mask, NULL);
-        return;
+        return 1;   // if it value was 0 and we blocked someone //
     }
     sem->value--;
     
     sigprocmask(SIG_UNBLOCK, &new_mask, NULL);
+
+    return 1;   // if it value was 1 //
 }
 
 void mythreads_create(thr_t *thread, void (*func)(void *), void *arg)
 {
     // Initialize the thread coroutine //
-    sem_down(mtx, thread->id);
+    sem_down(lib_mtx);
 
     thread->state = READY;
     thread->finish = NULL;
@@ -189,7 +196,7 @@ void mythreads_create(thr_t *thread, void (*func)(void *), void *arg)
     thread_ids++;
     mycoroutines_create(&(thread->coroutine), func, arg);
 
-    sem_up(mtx);
+    sem_up(lib_mtx);
 }
 
 void mythreads_join(thr_t *thread)
@@ -200,14 +207,14 @@ void mythreads_join(thr_t *thread)
         printf("Finish is NULL\n");
         return;
     }
-    sem_down(thread->finish, 0);
+    sem_down(thread->finish);
 }
 
 void mythread_destroy(thr_t *thread)
 {
     int i, j;
 
-    sem_down(mtx, thread->id);
+    sem_down(lib_mtx);
 
     mycoroutines_destroy(thread->coroutine);
     thread->state = BLOCKED;
@@ -228,12 +235,12 @@ void mythread_destroy(thr_t *thread)
 
     threads_array = (thr_t *) realloc(threads_array, (j + 1) * sizeof(thr_t));
 
-    sem_up(mtx);
+    sem_up(lib_mtx);
 }
 
 void mythtreads_init()
 {
-    thread_ids = 0;
+    thread_ids = 1;
     // set_alarm(50);  // 500 useconds //
     timer_init();
 }
@@ -247,7 +254,6 @@ void find_thread(int thread_id, int *pos)
     {
         if(threads_array[i].id == thread_id)
         {
-            
             *pos = i;
             break;
         }
@@ -263,7 +269,7 @@ void handle_alarm(int signum)
 
     for(i = current_thread + 1; i != current_thread; i++)
     {
-        if(threads_array[i].id == -1)
+        if(threads_array[i].id == 0)
         {
             i = -1;
             continue;
@@ -272,7 +278,7 @@ void handle_alarm(int signum)
         {
             found_avaialble_thread = 1;
             threads_array[current_thread].coroutine->next_cot = threads_array[i].coroutine->cot;
-            printf ("curr thread is %d\n", i);
+            // printf ("curr thread is %d\n", i);
             temp = current_thread;
             current_thread = i;
             mycoroutines_switchto(threads_array[temp].coroutine);
@@ -308,9 +314,9 @@ void timer_init()
 
     //alarm every 0.5 seconds
     t.it_value.tv_sec = 0;
-    t.it_value.tv_usec = 500;
+    t.it_value.tv_usec = 500000;
     t.it_interval.tv_sec = 0;
-    t.it_interval.tv_usec = 500;
+    t.it_interval.tv_usec = 500000;
 
 
     sig_val = sigaction(SIGALRM, &act, NULL);
@@ -331,7 +337,7 @@ void *thread_func(void *arg)
     while(1)
     {
         printf("Thread func 1\n");
-        sem_down(threads_array[*curr_id].finish, *curr_id);
+        sem_down(threads_array[*curr_id].finish);
     }
 
     return NULL;
@@ -345,14 +351,29 @@ void *thread_func_2(void *arg)
     sem_up(threads_array[1].finish);
     while(1)
     {
-        // sem_down(threads_array[*curr_id].finish, *curr_id);
-        // sem_down(threads_array[*curr_id].finish, *curr_id);
+        // sem_down(threads_array[*curr_id].finish);
+        // sem_down(threads_array[*curr_id].finish);
     }
 
 
     return NULL;
 }
 
+double get_current_time()
+{
+    return (double) time(NULL);
+}
+
+void custom_sleep(double seconds)
+{
+    double start_time = get_current_time();
+    double end_time = start_time + seconds;
+
+    while(get_current_time() < end_time)
+    {
+        // do nothing //
+    }
+}
 
 // int main()
 // {
@@ -362,8 +383,8 @@ void *thread_func_2(void *arg)
 //     int j = 2;
 //     int k = 1;
 
-//     mtx = NULL;
-//     mtx = sem_create(mtx, 1);
+//     lib_mtx = NULL;
+//     lib_mtx = sem_create(lib_mtx, 1);
 
 //     signal(MY_CUSTOM_SIGNAL, handle_alarm);
 

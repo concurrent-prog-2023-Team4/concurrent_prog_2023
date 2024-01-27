@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <ucontext.h>
 #include <sys/time.h>
+#include <time.h>
 
 #define MY_CUSTOM_SIGNAL (SIGRTMIN + 1)
 
@@ -17,8 +18,8 @@ typedef struct semaphore sem_t;
 
 sem_t *sem_create(sem_t *sem, int value);
 void sem_destroy(sem_t *sem);
-void sem_up(sem_t *sem);
-void sem_down(sem_t *sem, int thread_id);
+int sem_up(sem_t *sem);
+int sem_down(sem_t *sem);
 void shift_left(sem_t *sem);
 
 #define STACK_SIZE 16384
@@ -61,8 +62,11 @@ void find_thread(int thread_id, int *pos);
 int thread_ids;
 thr_t *threads_array;   // -1 terminated array of threads //
 
-sem_t *mtx; // we need to init //
+sem_t *lib_mtx; // we need to init //
 
 void timer_init();
 
 int finish;
+
+double get_current_time();
+void custom_sleep(double seconds);
