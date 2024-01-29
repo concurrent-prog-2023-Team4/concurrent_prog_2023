@@ -337,11 +337,6 @@ int main(int argc, char *argv[])
     thread_ids = 1;
     mythreads_create(&threads_array[0], (void *) main, NULL);
 
-    // mysem_init(&mtx, 1);
-    // mysem_init(&r_sem, 0);
-    // mysem_init(&b_sem, 0);
-    // mysem_init(&print_sem, 1);
-
     #ifndef DEBUG
     
     pthread_create(&ids[i], NULL, print_result, NULL);
@@ -386,7 +381,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    while (1) {
+    while (1) 
+    {
         
     }
     for(j = 0; j < i; j++)
