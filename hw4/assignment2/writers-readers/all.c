@@ -1,7 +1,6 @@
 #include "all.h"
 int finish;
 
-
 int mycoroutines_init(co_t *main)
 {
     // Initialize the main coroutine
@@ -108,7 +107,7 @@ int sem_up(sem_t *sem)
         return -2; // thread not found //
     }
     threads_array[thread_pos].state = READY;
-    sem->queue[0] = -1;
+    sem->queue[0] = 0;
 
     shift_left(sem);
     sem->queue = (int *) realloc(sem->queue, (sem->size - 1) * sizeof(int));
@@ -287,7 +286,9 @@ void handle_alarm(int signum)
         }
     }
     if(found_avaialble_thread == 0)
-        printf("Schedule did not found threads available\n");
+    {
+        printf("Scheduler did not found threads available\n");
+    }
 }
 
 // // Function to set an alarm for a specified number of seconds

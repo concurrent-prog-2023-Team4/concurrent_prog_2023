@@ -20,11 +20,11 @@ void *writer()
         }
         else 
         {
-            // writing++;
-            sem_up(mtx);
+            writing++;
+            sem_up(mtx);;
             // break;
         }
-        writing++;
+        // writing++;
     // }
     /* write */
     printf(ANSI_COLOR_RED "Writer %d enters critical section\nwriting: %d reading: %d\nreaders_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
@@ -51,9 +51,10 @@ void *writer()
         sem_up(mtx);
     }
 
+    // pthread_exit(NULL);
     while(1)
     {
-        
+
     }
 }
 
@@ -64,7 +65,7 @@ void *reader()
     sem_down(mtx);
     curr_id = reader_num;
     reader_num++;
-    sem_up(mtx);
+    sem_up(mtx);;
 
     // while(1)
     // {
@@ -72,12 +73,12 @@ void *reader()
         if (writing + writers_waiting > 0) 
         {
             readers_waiting++;
-            sem_up(mtx);
+            sem_up(mtx);;
             sem_down(read_sem);
             if (readers_waiting > 0) 
             {
                 readers_waiting--;
-                // reading++;
+                reading++;
                 sem_up(read_sem);
                 // break;
             }
@@ -89,12 +90,12 @@ void *reader()
         }
         else 
         {
-            // reading++;
+            reading++;
             sem_up(mtx);
             // break;
         }
 
-        reading++;  
+        // reading++;  
     // }
     /* read */
     printf(ANSI_COLOR_BLUE "Reader %d enters critical section\nwriting: %d reading: %d\nreaders_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
@@ -109,12 +110,14 @@ void *reader()
         sem_up(write_sem);
     }
     printf(ANSI_COLOR_BLUE "Reader %d exits critical section\nwriting: %d reading: %d\nreaders_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
-    sem_up(mtx);
-
+    sem_up(mtx);;
+    
+    // pthread_exit(NULL);
     while(1)
     {
 
     }
+
 }
 
 int main(int argc, char *argv[])
