@@ -40,14 +40,14 @@ int mycoroutines_destroy(co_t *coroutines);
 void handle_alarm(int signum);
 void set_alarm(int seconds);
 
-int current_thread;     // index of current thread in threads_array //
+extern int current_thread;     // index of current thread in threads_array //
 void *thread_func(void *arg);
 
 
 struct my_threads
 {
     int id;
-    enum {READY, BLOCKED} state;
+    enum {READY, BLOCKED, FINISH, YIELD} state;
     co_t *coroutine;
     sem_t *finish;
 };
@@ -57,16 +57,18 @@ void mythtreads_init();
 void mythreads_create(thr_t *thread, void (*func)(void *), void *arg);
 void mythreads_join(thr_t *thread);
 void mythread_destroy(thr_t *thread);
+void mythread_yield();
+void mythread_exit();
 void find_thread(int thread_id, int *pos);
 
-int thread_ids;
-thr_t *threads_array;   // -1 terminated array of threads //
+extern int thread_ids;
+extern thr_t *threads_array;   // -1 terminated array of threads //
 
-sem_t *lib_mtx; // we need to init //
+extern sem_t *lib_mtx; // we need to init //
 
 void timer_init();
 
-int finish;
+extern int finish;
 
 double get_current_time();
 void custom_sleep(double seconds);

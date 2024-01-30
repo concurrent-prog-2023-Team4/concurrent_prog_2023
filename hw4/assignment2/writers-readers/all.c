@@ -1,4 +1,9 @@
 #include "all.h"
+// int finish;
+int current_thread;
+int thread_ids;
+thr_t *threads_array;
+sem_t *lib_mtx;
 int finish;
 
 int mycoroutines_init(co_t *main)
@@ -136,7 +141,7 @@ int sem_down(sem_t *sem)
     int found_avaialble_thread = 0;
     int thread_id;
     
-    thread_id = current_thread;
+    thread_id = current_thread; 
 
     sigemptyset(&new_mask);
     sigaddset(&new_mask, SIGALRM);
@@ -145,11 +150,11 @@ int sem_down(sem_t *sem)
     if(sem->value == 0)
     {
         sem->queue = (int *) realloc(sem->queue, (sem->size + 1) * sizeof(int));
-        sem->queue[sem->size] = thread_id;
+        sem->queue[sem->size] = threads_array[current_thread].id;   // we keep ids in queue //
         sem->size++;
         // thread status to blocked //
-        find_thread(thread_id, &thread_pos);
-        threads_array[thread_pos].state = BLOCKED;
+        // find_thread(thread_id, &thread_pos);
+        threads_array[current_thread].state = BLOCKED;
 
         for(i = current_thread + 1; i != current_thread; i++)
         {
@@ -212,27 +217,28 @@ void mythreads_join(thr_t *thread)
 void mythread_destroy(thr_t *thread)
 {
     int i, j;
+    thr_t copy_thread;
 
     sem_down(lib_mtx);
 
-    mycoroutines_destroy(thread->coroutine);
-    thread->state = BLOCKED;
-    // sem_destroy(thread->finish);
-    for(i = 0; threads_array[i].id != -1; i++)
+    for(i = 0; threads_array[i].id != 0; i++)
     {
         if(threads_array[i].id == thread->id)
         {
+            // copy_thread = threads_array[i];
+            mycoroutines_destroy(threads_array[i].coroutine);
+            sem_destroy(threads_array[i].finish);
+            threads_array[i].id = -1;
+
             break;
         }
     }
-    for(j = i; threads_array[j].id != -1; j++)
-    {
-        threads_array[j] = threads_array[j + 1];
-    }
-    
-    // sem_up(thread->finish); // inform that thread finished //
-
-    threads_array = (thr_t *) realloc(threads_array, (j + 1) * sizeof(thr_t));
+    // for(j = i; threads_array[j].id != 0; j++)
+    // {
+    //     threads_array[j] = threads_array[j + 1];
+    // }
+    // threads_array[j+1] = copy_thread;
+     // threads_array = (thr_t *) realloc(threads_array, (j + 1) * sizeof(thr_t));
 
     sem_up(lib_mtx);
 }
@@ -249,7 +255,7 @@ void find_thread(int thread_id, int *pos)
     int i;
 
     *pos = -1;
-    for(i = 0; threads_array[i].id != -1; i++)
+    for(i = 0; threads_array[i].id != 0; i++)
     {
         if(threads_array[i].id == thread_id)
         {
@@ -266,11 +272,33 @@ void handle_alarm(int signum)
     int temp;
     int found_avaialble_thread = 0;
 
+    for(i = 0; threads_array[i].id != 0; i++)
+    {
+        if(threads_array[i].id != -1)
+        {
+            if(threads_array[i].state == FINISH)
+            {
+                printf("Thread %d is exiting\n", threads_array[i].id);
+                mythread_destroy(&threads_array[i]);
+            }
+        }
+    }
+
     for(i = current_thread + 1; i != current_thread; i++)
     {
+        if(threads_array[i].id == -1)
+        {
+            continue;
+        }
         if(threads_array[i].id == 0)
         {
             i = -1;
+            continue;
+        }
+        if(threads_array[i].state == YIELD)
+        {
+            printf("Found yield on a thread\n");
+            threads_array[i].state = READY;
             continue;
         }
         if(threads_array[i].state == READY)
@@ -285,9 +313,24 @@ void handle_alarm(int signum)
             break;
         }
     }
+
+    // check if the first one is available //
     if(found_avaialble_thread == 0)
     {
-        printf("Scheduler did not found threads available\n");
+        // printf("Scheduler did not found threads available\n");
+        if(threads_array[i].id != -1 && threads_array[i].id != 0)
+        {
+            if(threads_array[i].state == READY)
+            {
+                found_avaialble_thread = 1;
+                threads_array[current_thread].coroutine->next_cot = threads_array[i].coroutine->cot;
+                // printf ("curr thread is %d\n", i);
+                temp = current_thread;
+                current_thread = i;
+                mycoroutines_switchto(threads_array[temp].coroutine);
+                
+            }
+        }
     }
 }
 
@@ -315,9 +358,9 @@ void timer_init()
 
     //alarm every 0.5 seconds
     t.it_value.tv_sec = 0;
-    t.it_value.tv_usec = 500000;
+    t.it_value.tv_usec = 50000;
     t.it_interval.tv_sec = 0;
-    t.it_interval.tv_usec = 500000;
+    t.it_interval.tv_usec = 50000;
 
 
     sig_val = sigaction(SIGALRM, &act, NULL);
@@ -376,51 +419,24 @@ void custom_sleep(double seconds)
     }
 }
 
-// int main()
-// {
-//     int i;
-//     // Initialize the main thread
-//     i = 0;
-//     int j = 2;
-//     int k = 1;
+void mythread_yield()
+{
+    threads_array[current_thread].state = YIELD;
 
-//     lib_mtx = NULL;
-//     lib_mtx = sem_create(lib_mtx, 1);
+    while(threads_array[current_thread].state != READY)
+    {
 
-//     signal(MY_CUSTOM_SIGNAL, handle_alarm);
+    }
+}
 
-//     threads_array = (thr_t *) malloc(4 * sizeof(thr_t));
+void mythread_exit()
+{
+    threads_array[current_thread].state = FINISH;
 
-//     mythreads_create(&threads_array[0],(void*) main, &i);
- 
-//     i++;
+    sem_up(threads_array[current_thread].finish);
 
-//     // Create the first thread
-//     mythreads_create(&threads_array[1], (void*) thread_func, &k);
-
-//     // Create the second thread
-//     mythreads_create(&threads_array[2], (void*) thread_func_2, &j);
-    
-//     // printf("Threads created\n");
-
-//     threads_array[3].id = -1;
-
-//     mythtreads_init();
-
-//     // sleep(5);
-//     while(1)
-//     {
-//         // printf("Main func \n");
-//     }
-
-//     // finish = 1;
-//     // Join the first thread
-//     // mythreads_join(&threads_array[1]);
-
-//     // // Join the second thread
-//     // mythreads_join(&threads_array[2]);
-
-//     return 0;
-// }
-
-
+    while(1)
+    {
+        
+    }
+}

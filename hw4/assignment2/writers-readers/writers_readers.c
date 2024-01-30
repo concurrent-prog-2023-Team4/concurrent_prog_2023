@@ -52,10 +52,7 @@ void *writer()
     }
 
     // pthread_exit(NULL);
-    while(1)
-    {
-
-    }
+    mythread_exit();
 }
 
 void *reader()
@@ -100,6 +97,7 @@ void *reader()
     /* read */
     printf(ANSI_COLOR_BLUE "Reader %d enters critical section\nwriting: %d reading: %d\nreaders_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
     custom_sleep(2);
+    mythread_yield();
 
     sem_down(mtx);
     reading--;
@@ -112,12 +110,7 @@ void *reader()
     printf(ANSI_COLOR_BLUE "Reader %d exits critical section\nwriting: %d reading: %d\nreaders_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
     sem_up(mtx);;
     
-    // pthread_exit(NULL);
-    while(1)
-    {
-
-    }
-
+    mythread_exit();
 }
 
 int main(int argc, char *argv[])
@@ -160,6 +153,7 @@ int main(int argc, char *argv[])
 
     mythtreads_init();
 
+    // sem_down(mtx);
     while (fgets(line, sizeof(line) ,file) != NULL)
     {
         if(line[0] == 'w')
@@ -186,10 +180,15 @@ int main(int argc, char *argv[])
             i++;  // increase pos of array with ids //
         }
     }
+    // sem_up(mtx);
 
-    while(1)
+    for(i = 1; threads_array[i].id != 0; i++)
     {
-
+        if(threads_array[i].id != -1)
+        {
+            mythreads_join(&threads_array[i]);
+        }
     }
-
+    free(threads_array);
+    printf("Main exiting\n");
 }
