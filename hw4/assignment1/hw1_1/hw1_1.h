@@ -7,10 +7,14 @@
 
 #include "../coroutines.h"
 
-co_t *thread_1, *thread_2, *main_co;
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+
+co_t *reader_cot, *writer_cot, *main_co;
 
 char *input;
 
-void *thread_func_2(void *argv);
-void *thread_func_1(void *argv);
+void *writer(void *argv);
+void *reader(void *argv);
 

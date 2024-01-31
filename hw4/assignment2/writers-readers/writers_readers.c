@@ -27,7 +27,7 @@ void *writer()
         // writing++;
     // }
     /* write */
-    printf(ANSI_COLOR_RED "Writer %d enters critical section\nwriting: %d reading: %d\nreaders_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
+    printf(ANSI_COLOR_RED "Writer %d enters critical section\nINFO: writing: %d reading: %d   readers_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
     custom_sleep(2);
 
     sem_down(mtx);
@@ -37,7 +37,7 @@ void *writer()
         readers_waiting--;
         reading++; 
         sem_up(read_sem);
-        printf(ANSI_COLOR_RED "Writer %d exits critical section\nwriting: %d reading: %d\nreaders_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
+        printf(ANSI_COLOR_RED "Writer %d enters critical section\nINFO: writing: %d reading: %d   readers_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
     }
     else 
     {
@@ -47,12 +47,14 @@ void *writer()
             writing++;
             sem_up(write_sem);
         }
-        printf(ANSI_COLOR_RED "Writer %d exits critical section\nwriting: %d reading: %d\nreaders_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
+        printf(ANSI_COLOR_RED "Writer %d enters critical section\nINFO: writing: %d reading: %d   readers_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
         sem_up(mtx);
     }
 
     // pthread_exit(NULL);
     mythread_exit();
+
+    return NULL;
 }
 
 void *reader()
@@ -64,40 +66,33 @@ void *reader()
     reader_num++;
     sem_up(mtx);;
 
-    // while(1)
-    // {
-        sem_down(mtx);
-        if (writing + writers_waiting > 0) 
+    sem_down(mtx);
+    if (writing + writers_waiting > 0) 
+    {
+        readers_waiting++;
+        sem_up(mtx);;
+        sem_down(read_sem);
+        if (readers_waiting > 0) 
         {
-            readers_waiting++;
-            sem_up(mtx);;
-            sem_down(read_sem);
-            if (readers_waiting > 0) 
-            {
-                readers_waiting--;
-                reading++;
-                sem_up(read_sem);
-                // break;
-            }
-            else 
-            {
-                sem_up(mtx);
-                // break;
-            }
+            readers_waiting--;
+            reading++;
+            sem_up(read_sem);
         }
         else 
         {
-            reading++;
             sem_up(mtx);
-            // break;
         }
+    }
+    else 
+    {
+        reading++;
+        sem_up(mtx);
+    }
 
-        // reading++;  
-    // }
     /* read */
-    printf(ANSI_COLOR_BLUE "Reader %d enters critical section\nwriting: %d reading: %d\nreaders_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
+    printf(ANSI_COLOR_BLUE "Reader %d enters critical section\nINFO: writing: %d reading: %d  readers_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
     custom_sleep(2);
-    mythread_yield();
+    // mythread_yield();
 
     sem_down(mtx);
     reading--;
@@ -107,10 +102,12 @@ void *reader()
         writing++;
         sem_up(write_sem);
     }
-    printf(ANSI_COLOR_BLUE "Reader %d exits critical section\nwriting: %d reading: %d\nreaders_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
+    printf(ANSI_COLOR_BLUE "Reader %d exits critical section\nINFO: writing: %d reading: %d   readers_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
     sem_up(mtx);;
     
     mythread_exit();
+
+    return NULL;
 }
 
 int main(int argc, char *argv[])
@@ -164,7 +161,7 @@ int main(int argc, char *argv[])
             
             threads_array[i+1].id = 0;
             #ifdef DEBUG
-            printf(ANSI_COLOR_RED "Writer created with sleep %d\n" ANSI_COLOR_RESET, atoi(line+1));
+            printf(ANSI_COLOR_GREEN "Writer created with sleep %d\n" ANSI_COLOR_RESET, atoi(line+1));
             #endif
 
             i++ ; // increase pos of array with ids //
@@ -175,7 +172,7 @@ int main(int argc, char *argv[])
             mythreads_create(&threads_array[i], (void *) reader, &reader_num);
             
             #ifdef DEBUG
-            printf(ANSI_COLOR_BLUE "Reader created with sleep %d\n" ANSI_COLOR_RESET, atoi(line+1));
+            printf(ANSI_COLOR_GREEN "Reader created with sleep %d\n" ANSI_COLOR_RESET, atoi(line+1));
             #endif                                                                                                                                                                                                      
             i++;  // increase pos of array with ids //
         }
@@ -190,5 +187,5 @@ int main(int argc, char *argv[])
         }
     }
     free(threads_array);
-    printf("Main exiting\n");
+    printf("Main exiting...\n");
 }
