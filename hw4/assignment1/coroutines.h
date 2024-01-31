@@ -13,7 +13,7 @@ struct coroutine
 {
     ucontext_t *cot;
     ucontext_t *next_cot;
-    char stack[16384];
+    char stack[STACK_SIZE];
 };
 typedef struct coroutine co_t;
 
