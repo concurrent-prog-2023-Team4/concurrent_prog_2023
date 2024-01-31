@@ -1,0 +1,193 @@
+// pseudo-code for the hw4 //
+
+/*----------------- Semaphores Library ---------------------------------*/
+sem_t* sem_create(sem_t *sem, int value):
+    if sem = NULL:
+        allocate memory for sem
+    sem->value = value
+    sem->queue = NULL
+    sem->size = 0
+    return sem
+
+int sem_destroy(sem_t *sem):
+    if sem = NULL:
+        return FAILED
+
+    free(sem)
+    return SUCCESS
+
+int sem_up(sem_t *sem):
+    block signals for scheduler
+
+    if sem->value = 1:
+        return ERROR lost up
+    if sem->size = 0:
+        sem->value = 1
+        return SUCCESS
+
+    make first thread in queue READY
+    shift_left sem->queue
+    re-allocate memory for sem->queue
+    sem->size = sem->size - 1
+
+    unblock signals for scheduler
+
+    return SUCCESS
+
+int sem_down(sem_t *sem):
+    block signals for scheduler
+
+    if sem->value = 0:
+        add current thread to sem->queue
+        sem->size = sem->size + 1
+        make current thread BLOCKED
+        find next thread to run and switch to it
+        mycoroutines_switchto(scheduler)
+        unblock signals for scheduler
+        return SUCCESS (does not change value)
+
+    sem->value = sem->value - 1
+    unblock signals for scheduler
+
+    return SUCCESS
+
+/* ------------------------------------------------------------------------*/
+
+/* ----------------- Threads Library -------------------------------------*/
+int mythreads_create(thr_t *thread, void (*func)(void *), void *arg):
+    sem_down(lib_mtx)
+
+    thread->state = READY;
+    thread->finish = NULL;
+    thread->finish = sem_create(thread->finish, 0);
+
+    if thread->finish = NULL:
+        return FAILED
+
+    give id to thread
+    thread_ids = thread_ids + 1
+
+    if mycoroutines_create(thread->coroutine, func, arg) != SUCCESS:
+        return FAILED
+
+    sem_up(lib_mtx)
+
+    return SUCCESS
+
+int mythreads_join(thr_t *thread):
+    if thread->finish = NULL:
+        return FAILED
+    
+    sem_down(thread->finish)
+    return SUCCESS
+
+int mythread_destroy(thr_t *thread):
+    sem_down(lib_mtx)
+    for i: 0 -> thread_ids:
+        if threads_array[i] = thread:
+            mycoroutines_destroy(threads_array[i].coroutine);
+            sem_destroy(threads_array[i].finish);
+            threads_array[i].id = -1;
+            break
+    
+    sem_up(lib_mtx)
+    return SUCCESS
+
+
+
+int mythread_init:
+    thread_ids = 1;
+    if(timer_init() != SUCCESS):
+        return FAILED
+
+    return SUCCESS
+
+
+
+int mythread_yield:
+    threads_arrray[current_thread].state = YIELD;
+    while(threads_array[current_thread].state != READY):
+        do nothing
+
+    return SUCCESS
+
+
+int mythread_exit:
+    threads_arrray[current_thread].state = FINISH;
+    sem_up(threads_array[current_thread].finish);
+
+    while(1):
+        do nothing
+
+    return SUCCESS
+
+
+
+void scheduler:
+    for i: 0 -> thread_ids:
+        if threads_array[i].id != -1:
+            if threads_array[i].state = FINISH:
+                mythread_destroy(threads_array[i])
+
+    for i = current_thread + 1 -> current_thread:
+        if threads_array[i].id = -1:
+            continue
+        
+        if threads_array[i].id = 0:
+            i = -1
+            continue;
+        
+        if threads_array[i].state = YIELD:
+            threads_array[i].state = READY;
+            continue;
+        
+        if threads_array[i].state = READY:
+            found_avaialble_thread = 1
+            set current_thread.coroutine->next_cot = threads_array[i].coroutine
+            temp = current_thread
+            current_thread = i
+            mycoroutines_switchto(threads_array[temp].coroutine)
+            break
+
+    if found_avaialble_thread = 0:
+        give processor to the same thread
+
+
+int timer_init:
+    set timer to 50000 us (0.05 sec)
+    set signal handler to scheduler
+    return SUCCESS
+
+void custom_sleep:
+    get start time  // local time //
+    init end_time = start_time + seconds
+
+    while(current_time < end_time):
+        do nothing
+
+        
+main:
+    if wrong arguments:
+        return ERROR
+
+    Initialize variables
+    allocate memory for threads_array
+    sem_create(mtx, 1)
+    sem_create(lib_mtx, 1)
+    sem_create(read_sem, 0)
+    sem_create(write_sem, 0)
+
+    mythreads_create for main
+    mythreads_init()
+    while(file != EOF)
+        if line[0] = 'w':
+            custom_sleep(given time)
+            mythreads_create for writer
+        else if line[0] = 'r':
+            custom_sleep(given time)
+            mythreads_create for reader
+        
+    for i: 0 -> thread_ids:
+        if threads_array[i].id != -1:
+            mythreads_join(threads_array[i])
+    
