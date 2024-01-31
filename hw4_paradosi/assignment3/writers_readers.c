@@ -19,7 +19,7 @@ void *writer()
     else 
     {
         writing++;
-        sem_up(mtx);;
+        sem_up(mtx);
     }
 
     /* write */
@@ -59,13 +59,13 @@ void *reader()
     sem_down(mtx);
     curr_id = reader_num;
     reader_num++;
-    sem_up(mtx);;
+    sem_up(mtx);
 
     sem_down(mtx);
     if (writing + writers_waiting > 0) 
     {
         readers_waiting++;
-        sem_up(mtx);;
+        sem_up(mtx);
         sem_down(read_sem);
         if (readers_waiting > 0) 
         {
@@ -98,8 +98,8 @@ void *reader()
         sem_up(write_sem);
     }
     printf(ANSI_COLOR_BLUE "Reader %d exits critical section\nINFO: writing: %d reading: %d   readers_waiting: %d writers_waiting: %d\n\n" ANSI_COLOR_RESET, curr_id, writing, reading, readers_waiting, writers_waiting);
-    sem_up(mtx);;
-    
+    sem_up(mtx);
+
     mythread_exit();
 
     return NULL;
