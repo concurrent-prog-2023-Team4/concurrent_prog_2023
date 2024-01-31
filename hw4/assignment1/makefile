@@ -1,9 +1,9 @@
 CXX = gcc             # C compiler
 CXXFLAGS = -Wall -g # Compiler flags
 LDFLAGS = -lpthread # Linker flags
-SRC_FILES = $(wildcard hw1_1/*.c) $(wildcard *.c)
+SRC_FILES = $(wildcard hw4_1_test/*.c) $(wildcard *.c)
 OBJ_FILES = $(SRC_FILES:.c=.o)  # List of object files
-TARGET = hw1_1_test   # Final executable name
+TARGET = hw4_1      # Final executable name
 
 # Main rule
 all: $(TARGET)
